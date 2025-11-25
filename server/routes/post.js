@@ -3,6 +3,9 @@ const router = express.Router();
 const Post = require('../models/Post');
 const Subscription = require('../models/Subscription');
 const { protect, creatorOnly } = require('../middleware/auth');
+const User = require('../models/User');
+const upload = require("../config/multer");
+const uploadToCloudinary = require("../utils/uploadToCloudinary");
 
 // @route   GET /api/posts
 // @desc    Get all posts
@@ -21,11 +24,15 @@ router.get('/', async (req, res) => {
 // @route   GET /api/posts/creator/:creatorId
 // @desc    Get posts by creator
 // @access  Public
-router.get('/creator/:creatorId', async (req, res) => {
-  try {
-    const posts = await Post.find({ creator_id: req.params.creatorId })
-      .populate('creator_id', 'name email bio')
+router.get('/creator/:username', async (req, res) => {
+  try { 
+    const [creatorid] = await User.find({ username: req.params.username })
+    const formatted = creatorid._id ;
+    const posts = await Post.find({ creatorId: formatted })
+      .populate('creatorId', 'name username email bio')
       .sort({ createdAt: -1 });
+
+    console.log(posts)
     res.json(posts);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -69,18 +76,22 @@ router.get('/accessible/:creatorId', protect, async (req, res) => {
 // @access  Private (Creator only)
 router.post('/', protect, creatorOnly, async (req, res) => {
   try {
-    const { title, description, image_url, access_type } = req.body;
+    const { title, content, image_url, access_type } = req.body;
 
-    if (!title || !description) {
+    if (!title || !content) {
       return res.status(400).json({ message: 'Please provide title and description' });
     }
 
     const post = await Post.create({
-      title,
-      description,
-      image_url: image_url || '',
-      access_type: access_type || 'free',
-      creator_id: req.user._id
+      title: req.body.title,
+      content: req.body.content,
+      contentType: req.body.contentType,
+      mediaUrl :req.body.mediaUrl,
+      thumbnailUrl: req.body.thumbnailUrl,
+      access_type: req.body.access_type,
+      creatorId: req.user._id,
+      createdAt: new Date()
+     
     });
 
     res.status(201).json(post);
@@ -88,6 +99,45 @@ router.post('/', protect, creatorOnly, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+
+router.post("/save" ,upload.single("media"),protect, async (req, res) => {
+  try {
+     console.log("BODY:", req.body);
+    console.log("FILE:", req.file);
+    const filePath = req.file.path; // Temp multer file
+
+    // Upload to Cloudinary
+    const mediaUrl = await uploadToCloudinary(filePath);
+    console.log(mediaUrl)
+    if (!mediaUrl) {
+      return res.status(500).json({ message: "Upload failed" });
+    }
+ const url = mediaUrl ;
+    // Save to MongoDB
+    // const post = await Post.create({
+    //   title: req.body.title,
+    //   content: req.body.content,
+    //   contentType: req.body.contentType,
+    //   mediaUrl,
+    //   thumbnailUrl: req.body.thumbnailUrl ?? "",
+    //   creatorId: req.user._id,
+    //   createdAt: new Date()
+     
+    // });
+
+
+    res.json({
+      success: true,
+      url,
+    });
+  } catch (err) {
+    console.error("POST ERROR:", err);
+    res.status(500).json({ success: false, error: err.message });
+   
+  }
+});
+
+
 
 // @route   PUT /api/posts/:id
 // @desc    Update post
@@ -101,15 +151,17 @@ router.put('/:id', protect, creatorOnly, async (req, res) => {
     }
 
     // Check if user owns the post
-    if (post.creator_id.toString() !== req.user._id.toString()) {
+    if (post.creatorId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized to update this post' });
     }
 
-    const { title, description, image_url, access_type } = req.body;
+    const { title, description, mediaUrl, thumbnailUrl ,access_type } = req.body;
 
     post.title = title || post.title;
     post.description = description || post.description;
-    post.image_url = image_url || post.image_url;
+    post.mediaUrl = mediaUrl || post.mediaUrl;
+    post.thumbnailUrl = thumbnailUrl || post.thumbnailUrl ;
+
     post.access_type = access_type || post.access_type;
 
     await post.save();

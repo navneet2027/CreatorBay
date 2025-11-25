@@ -6,10 +6,21 @@ const subscriptionSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+
   creator_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+
+  plan:{
+    type: String,
+    default:"free",
+    
+  },
+  tim:{
+    type : String,
+    default: "free"
   },
   payment_status: {
     type: String,

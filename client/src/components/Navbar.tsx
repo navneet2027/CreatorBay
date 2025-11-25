@@ -37,12 +37,30 @@ export const Navbar = ({ userType, userName }: NavbarProps) => {
                 Welcome, {userName}
               </span>
               {userType === "user" && (
+                 <>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate("/subscriptions")}
+                  >
+                    Subscriptions
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate("/profile")}
+                  >
+                    My Profile
+                  </Button>
+                </>
+              )}
+              {userType === "creator" && (
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => navigate("/profile")}
+                  onClick={() => navigate("/creator/settings")}
                 >
-                  My Profile
+                  Settings
                 </Button>
               )}
               <Button 

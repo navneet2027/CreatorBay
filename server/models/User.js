@@ -35,10 +35,31 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  subscriberCount: {
+     type: Number,
+     default: 0 ,
+  },
+  monthly: {
+    type: Number,
+    default: 389
+  },
+  yearly: {
+    type: Number,
+    default: 4201,
+  },
+  percentage_discount:{
+     type : Number,
+     default: 9.87,
+  },
+  profilePic:{
+    type: String,
+    default: ""
+  },
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  
 });
 
 // Hash password before saving

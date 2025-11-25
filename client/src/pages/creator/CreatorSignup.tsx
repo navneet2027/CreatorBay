@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import axios from "axios";
+import { profile } from "console";
 
 const CreatorSignup = () => {
   const navigate = useNavigate();
@@ -18,6 +19,8 @@ const CreatorSignup = () => {
     bio: "",
   });
   const [loading, setLoading] = useState(false);
+        const [isloading, setIsloading] = useState(false);
+  
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +29,7 @@ const CreatorSignup = () => {
     // TODO: Call creator signup API
     // Example: const response = await fetch('/api/creator/signup', { method: 'POST', body: JSON.stringify(formData) });
     try {
+      setIsloading(true)
       const response = await axios.post("http://localhost:5000/api/auth/signup", {
       name:formData.name,
       username:formData.username,
@@ -33,6 +37,7 @@ const CreatorSignup = () => {
       password:formData.password,
       role: "creator",
       bio: formData.bio,
+      profilePic : "https://res.cloudinary.com/dtirmyj7p/image/upload/v1763996236/creator_posts/creator_apvu40.png"
     });
  
   
@@ -45,10 +50,12 @@ const CreatorSignup = () => {
 
    
     } catch (error) {
+      setLoading(false);
       toast.error(`${error.response.data.message}`)
       console.error("Error:", error.response?.data || error.message);
+    }finally{
+           setIsloading(false)
     }
-    // Simulating signup
    
   };
 
@@ -128,6 +135,19 @@ const CreatorSignup = () => {
             Login
           </Button>
         </div>
+         {isloading && (
+  <div 
+    className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
+  >
+    <div className="bg-white rounded-xl p-8 shadow-xl w-80 text-center">
+      <div className="loader mx-auto mb-4"></div>
+      <h2 className="text-lg font-semibold">loading…</h2>
+      <p className="text-muted-foreground text-sm mt-2">
+        Please wait, getting dashboard ready....
+      </p>
+    </div>
+  </div>
+)}
       </form>
     </AuthLayout>
   );

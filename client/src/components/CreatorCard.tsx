@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import ProfileCard from "./Postcardprofile";
 
 interface CreatorCardProps {
   id: string;
@@ -8,18 +9,24 @@ interface CreatorCardProps {
   username: string;
   bio: string;
   subscriberCount?: number;
+  profilePic?: string
 }
 
-export const CreatorCard = ({ id, name, username, bio, subscriberCount }: CreatorCardProps) => {
+export const CreatorCard = ({ id, name, username, bio, subscriberCount ,profilePic }: CreatorCardProps) => {
   const navigate = useNavigate();
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
-            {name.charAt(0)}
+          <div>
+             {!profilePic ? (
+            <div>Loading profile...</div>
+          ) : (
+            <ProfileCard user={{profilePic}} />
+          )}
           </div>
+           
           <div>
             <CardTitle className="text-lg">{name}</CardTitle>
             <CardDescription>@{username}</CardDescription>

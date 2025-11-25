@@ -185,7 +185,10 @@ const { protect } = require('../middleware/auth');
 // @access  Private
 router.post('/create-order', protect, async (req, res) => {
   try {
-    const { creator_id, amount } = req.body;
+    const [creatorId] = await User.find({ username: req.body.username })
+    const creator_id = creatorId._id ;
+
+    const {  amount } = req.body;
 
     if (!creator_id || !amount) {
       return res.status(400).json({ message: 'Please provide creator_id and amount' });
@@ -201,6 +204,7 @@ router.post('/create-order', protect, async (req, res) => {
     const existingSubscription = await Subscription.findOne({
       user_id: req.user._id,
       creator_id,
+      plan : "paid",
       payment_status: 'active',
       end_date: { $gt: new Date() }
     });
@@ -214,8 +218,9 @@ router.post('/create-order', protect, async (req, res) => {
 
     res.json({
       order_id: mockOrderId,
-      amount: amount * 100,
+      amount: amount,
       currency: 'INR',
+      creator_id: creator_id,
       isMockPayment: true
     });
   } catch (error) {
@@ -223,12 +228,55 @@ router.post('/create-order', protect, async (req, res) => {
   }
 });
 
+router.post('/create-order/free', protect, async (req, res) => {
+  try {
+     const [creatorId] = await User.find({ username: req.body.username })
+    const creator_id = creatorId._id ;
+    //const { creator_id} = req.body;
+
+    if (!creator_id) {
+      return res.status(400).json({ message: 'Please provide creator_id and amount' });
+    }
+
+    // Check if creator exists
+    const creator = await User.findById(creator_id);
+    if (!creator || creator.role !== 'creator') {
+      return res.status(404).json({ message: 'Creator not found' });
+    }
+
+    // Check if already subscribed
+    const existingSubscription = await Subscription.findOne({
+      user_id: req.user._id,
+      creator_id,
+
+      payment_status: 'active',
+      end_date: { $gt: new Date() }
+    });
+
+    if (existingSubscription) {
+      return res.status(400).json({ message: 'Already subscribed to this creator' });
+    }
+
+    // Create mock order ID
+    const mockOrderId = `order_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+
+    res.json({
+      order_id: mockOrderId,
+      creator_id: creator_id,
+      isMockPayment: true
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+
 // @route   POST /api/payment/verify
 // @desc    Mock payment verification (Always succeeds)
 // @access  Private
 router.post('/verify', protect, async (req, res) => {
   try {
-    const { order_id, creator_id, amount } = req.body;
+    const { order_id, creator_id, amount , tim } = req.body;
 
     if (!order_id || !creator_id || !amount) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -236,7 +284,15 @@ router.post('/verify', protect, async (req, res) => {
 
     // Create subscription (payment always succeeds in mock mode)
     const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + 1); // 1 month subscription
+    let p = "free";
+    if (tim === "m"){
+    endDate.setMonth(endDate.getMonth() + 1);
+    p="monthly";
+
+  }else{
+    endDate.setMonth(endDate.getMonth() + 12);
+    p="yearly"
+  } // 1 month subscription
 
     const mockPaymentId = `pay_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
@@ -244,12 +300,64 @@ router.post('/verify', protect, async (req, res) => {
       user_id: req.user._id,
       creator_id,
       payment_status: 'active',
+      plan : 'paid',
+      tim: p,
       razorpay_order_id: order_id,
       razorpay_payment_id: mockPaymentId,
-      amount: amount / 100,
+      amount: amount,
       start_date: new Date(),
       end_date: endDate
     });
+
+    const newuser = await User.findOneAndUpdate(
+  { _id: creator_id },
+  { $inc: { subscriberCount: 1 }},
+  { new: true }
+  
+);
+
+    res.json({
+      message: 'Payment verified successfully (Mock Payment)',
+      subscription
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+router.post('/free/verify', protect, async (req, res) => {
+  try {
+    // const [creatorId] = await User.find({ username: req.body.username })
+    // const creator_id = creatorId._id ;
+    const { order_id,creator_id,username} = req.body;
+
+    if (!order_id || !creator_id) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Create subscription (payment always succeeds in mock mode)
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 1200); // 1 month subscription
+
+    const mockPaymentId = `pay_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+
+    const subscription = await Subscription.create({
+      user_id: req.user._id,
+      creator_id: creator_id ,
+      payment_status: "active",
+      
+      amount: 0,
+      start_date: new Date(),
+      end_date: endDate
+    });
+
+    const newuser = await User.findOneAndUpdate(
+  { username: username },
+  { $inc: { subscriberCount: 1 }},
+  { new: true }
+  
+);
+
 
     res.json({
       message: 'Payment verified successfully (Mock Payment)',
@@ -266,9 +374,42 @@ router.post('/verify', protect, async (req, res) => {
 router.get('/subscriptions', protect, async (req, res) => {
   try {
     const subscriptions = await Subscription.find({ user_id: req.user._id })
-      .populate('creator_id', 'name email bio')
+      .populate('creator_id', '_id name username email profilePic')
       .sort({ createdAt: -1 });
-    res.json(subscriptions);
+ 
+       const formatted = subscriptions.map(c => ({
+            id: c.creator_id._id,
+            creatorName: c.creator_id.name,
+            creatorUsername: c.creator_id.username,
+            plan: c.tim,
+            price: c.amount,
+            renewalDate: c.end_date.toLocaleDateString("en-GB"),
+            status: c.payment_status,
+            profilePic : c.creator_id.profilePic
+        }));
+    res.json(formatted)
+ 
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+router.get('/subscriptions/profile', protect, async (req, res) => {
+  try {
+    const subscriptions = await Subscription.find({ user_id: req.user._id })
+      .populate('creator_id', '_id name username email profilePic')
+      .sort({ createdAt: -1 });
+ 
+       const formatted = subscriptions.map(c => ({
+            id: c.creator_id._id,
+            name: c.creator_id.name,
+            username: c.creator_id.username,
+            profilePic: c.creator_id.profilePic,
+            allowed:false
+
+           
+        }));
+    res.json(formatted)
+ 
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -303,11 +444,12 @@ router.get('/subscribers', protect, async (req, res) => {
 // @route   GET /api/payment/check-subscription/:creatorId
 // @desc    Check if user is subscribed to creator
 // @access  Private
-router.get('/check-subscription/:creatorId', protect, async (req, res) => {
+router.get('/check-subscription/:username', protect, async (req, res) => {
   try {
+    const creatorId = await User.findOne({username: req.params.username}).select("_id")
     const subscription = await Subscription.findOne({
       user_id: req.user._id,
-      creator_id: req.params.creatorId,
+      creator_id: creatorId,
       payment_status: 'active',
       end_date: { $gt: new Date() }
     });
@@ -316,6 +458,27 @@ router.get('/check-subscription/:creatorId', protect, async (req, res) => {
       isSubscribed: !!subscription,
       subscription
     });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+
+router.delete('/unsubscribe/:id', protect, async (req, res) => {
+  try {
+    const deletedPost = await Subscription.findByIdAndDelete(req.params.id);
+    if (!deletedPost) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const newuser = await User.findOneAndUpdate(
+      { _id: deletedPost.creator_id },
+      { $inc: { subscriberCount: -1 }},
+      { new: true }
+      
+    );
+     res.json({ message: 'Post deleted successfully' });
+  
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

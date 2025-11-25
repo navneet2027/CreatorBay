@@ -16,6 +16,7 @@ const Signup = () => {
     password: "",
   });
   const [loading, setLoading] = useState(false);
+          const [isloading, setIsloading] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,12 +25,14 @@ const Signup = () => {
     // TODO: Call user signup API
     // Example: const response = await fetch('/api/user/signup', { method: 'POST', body: JSON.stringify(formData) });
     try {
+      setIsloading(true)
       const response = await axios.post("http://localhost:5000/api/auth/signup", {
       name:formData.name,
       username:formData.username,
       email:formData.email,
       password:formData.password,
-      role: "user"
+      role: "user",
+      profilePic : "https://res.cloudinary.com/dtirmyj7p/image/upload/v1763996236/creator_posts/user_ayovos.png"
     });
     e.preventDefault();
   
@@ -42,11 +45,12 @@ const Signup = () => {
 
    
     } catch (error) {
+      setLoading(false);
       toast.error(`${error.response.data.message}`)
       console.error("Error:", error.response?.data || error.message);
+    }finally{
+      setIsloading(false)
     }
-    
-    // Simulating signup
    
   };
 
@@ -115,6 +119,19 @@ const Signup = () => {
             Login
           </Button>
         </div>
+         {isloading && (
+  <div 
+    className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
+  >
+    <div className="bg-white rounded-xl p-8 shadow-xl w-80 text-center">
+      <div className="loader mx-auto mb-4"></div>
+      <h2 className="text-lg font-semibold">loading…</h2>
+      <p className="text-muted-foreground text-sm mt-2">
+        Please wait, Logging in....
+      </p>
+    </div>
+  </div>
+)}
       </form>
     </AuthLayout>
   );

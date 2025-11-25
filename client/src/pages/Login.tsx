@@ -12,6 +12,8 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+            const [isloading, setIsloading] = useState(false);
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +23,7 @@ const Login = () => {
     // Example: const response = await fetch('/api/user/login', { method: 'POST', body: JSON.stringify({ email, password }) });
     
     try {
+      setIsloading(true)
       const response = await axios.post("http://localhost:5000/api/auth/login", {
 
       email:email,
@@ -38,10 +41,13 @@ const Login = () => {
 
    
     } catch (error) {
+      setLoading(false);
       toast.error(`${error.response.data.message}`)
       console.error("Error:", error.response?.data || error.message);
+    } finally{
+      setIsloading(false)
     }
-    // Simulating login
+    
   
   };
 
@@ -96,6 +102,19 @@ const Login = () => {
             Login as Creator
           </Button>
         </div>
+        {isloading && (
+  <div 
+    className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
+  >
+    <div className="bg-white rounded-xl p-8 shadow-xl w-80 text-center">
+      <div className="loader mx-auto mb-4"></div>
+      <h2 className="text-lg font-semibold">loading…</h2>
+      <p className="text-muted-foreground text-sm mt-2">
+        Please wait, Logging in....
+      </p>
+    </div>
+  </div>
+)}
       </form>
     </AuthLayout>
   );

@@ -1,42 +1,58 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
-import { PostCard } from "@/components/PostCard";
+import { PostCard } from "@/components/PostCardUser";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import { toast } from "sonner";
+import { Lock } from "lucide-react";
+import axios from "axios"
+import AudioPlayer from "@/components/AudioPlayer";
+import ProfileCard from "@/components/Postcardprofile";
+
 
 // Mock data - TODO: Replace with API call
 const mockCreatorData = {
-  name: "Jane Artist",
-  username: "janeartist",
-  bio: "Digital artist creating beautiful illustrations and animations. Join my journey and get exclusive content!",
-  subscriberCount: 1234,
+  name: "loading...",
+  username: "loading...",
+  bio: "loading...",
+  subscriberCount: 0,
+  profilePic : "loading..",
+  allowed : false
+  
 };
 
-const mockPosts = [
-  {
-    id: "1",
-    title: "New Artwork Preview",
-    content: "Check out my latest digital painting! This piece took me 20 hours to complete. I'm really proud of how it turned out.",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    title: "Behind the Scenes",
-    content: "Here's a quick look at my creative process. I always start with rough sketches before moving to digital.",
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
-
+// const mockPosts = [
+//   {
+//     id: "1",
+//     title: "New Artwork Preview",
+//     content: "Check out my latest digital painting! This piece took me 20 hours to complete. I'm really proud of how it turned out.",
+//     createdAt: new Date().toISOString(),
+//   },
+//   {
+//     id: "2",
+//     title: "Behind the Scenes",
+//     content: "Here's a quick look at my creative process. I always start with rough sketches before moving to digital.",
+//     createdAt: new Date(Date.now() - 86400000).toISOString(),
+//   },
+// ];
 const CreatorProfile = () => {
   const { username } = useParams();
   const navigate = useNavigate();
   const [creator, setCreator] = useState(mockCreatorData);
-  const [posts, setPosts] = useState(mockPosts);
+  const [posts, setPosts] = useState<any[]>([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const userName = localStorage.getItem("userName") || "User";
+  const [currentPlan, setCurrentPlan] = useState<'free' | 'monthly' | 'yearly' | null>(null);
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+  const userName = localStorage.getItem("Name") || "User";
+    const [isloading, setIsloading] = useState(false);
 
+
+  
+  const [amountq, setAmountq] = useState({ monthly: 389, yearly: 4201, discount: 10 });
+  
   useEffect(() => {
     // Check if user is logged in
     const token = localStorage.getItem("userToken");
@@ -44,34 +60,305 @@ const CreatorProfile = () => {
       navigate("/login");
       return;
     }
+    localStorage.setItem("creatorUserName",username)
+        setIsloading(true)
 
+    const fetchData = async () => {
+      try {
+          const check =await axios.get(`http://localhost:5000/api/payment/check-subscription/${username}`,{
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+    })
+          setIsSubscribed(check.data.isSubscribed);
+        console.log(check.data)
+       if (check.data.isSubscribed){
+            setCurrentPlan(check.data.subscription.tim);
+            console.log(check.data.subscription)
+       }
+       
+          const creatorsget = await axios.get(`http://localhost:5000/api/auth/creator/${username}`,{
+    headers: {
+      Authorization: `Bearer ${token}`
+    }})
+ 
+        setCreator(prev => {
+           if (JSON.stringify(prev) === JSON.stringify(creatorsget.data[0])) return prev;
+        return creatorsget.data[0];
+        })
+        
+
+       
+     axios.get(`http://localhost:5000/api/auth/creator/subscribers/${username}`,{
+    headers: {
+      Authorization: `Bearer ${token}`
+    }}).then(res => setAmountq({
+      monthly: res.data.monthly,
+      yearly: res.data.yearly,
+      discount : res.data.discount
+
+    })
+     )
+
+    
+    
+           const postget = await axios.get(`http://localhost:5000/api/posts/creator/${username}`,{
+    headers: {
+      Authorization: `Bearer ${token}`
+    }})
+
+      
+setPosts(prev => {
+           if (JSON.stringify(prev) === JSON.stringify(postget.data)) return prev;
+        return postget.data;
+        })
+      } catch (error) {
+        
+      }finally{
+        setIsloading(false)
+      }
+    }
+  
+   
+  
+
+
+  
+   console.log(username)
+ 
+fetchData()
+
+
+    
     // TODO: Fetch creator details
+    console.log(username)
     // Example: fetch(`/api/creator/${username}`).then(res => res.json()).then(data => setCreator(data));
+ 
 
+    console.log(username)
+    
     // TODO: Fetch posts
     // Example: fetch(`/api/creator/${username}/posts`).then(res => res.json()).then(data => setPosts(data));
 
+
     // Auto-refresh posts every 5 seconds
-    const interval = setInterval(() => {
+    const interval = setInterval(fetchData
       // TODO: Re-fetch posts from backend
-      console.log("Refreshing posts...");
-    }, 5000);
+, 5000);
 
     return () => clearInterval(interval);
   }, [username, navigate]);
 
-  const handleSubscribe = async () => {
-    // TODO: Handle subscribe API
-    // Example: await fetch(`/api/subscribe/${username}`, { method: 'POST' });
+  // const handleSubscribe = async () => {
+  //   // TODO: Handle subscribe API
+  //   // Example: await fetch(`/api/subscribe/${username}`, { method: 'POST' });
+  //   setIsSubscribed(!isSubscribed);
+  //   if (isSubscribed) {
+  //     await fetch(`http://localhost:5000/api/auth/unsubscribe/${username}`, { method: 'POST' });
+      
+  //   }else{
+  //     await fetch(`http://localhost:5000/api/auth/subscribe/${username}`, { method: 'POST' });
+  //   };
+   
+  //   toast.success(isSubscribed ? "Unsubscribed successfully!" : "Subscribed successfully!");
     
-    setIsSubscribed(!isSubscribed);
-    toast.success(isSubscribed ? "Unsubscribed successfully!" : "Subscribed successfully!");
+  //   // Update subscriber count instantly
+  //   setCreator(prev => ({
+  //     ...prev,
+  //     subscriberCount: prev.subscriberCount + (isSubscribed ? -1 : 1),
+  //   }));
+  // };
+
+   const handleSubscribe = async (plan: "free" | "monthly" | "yearly") => {
+    // TODO: Handle subscribe API with plan type
+    // Example: await fetch(`/api/subscribe/${username}`, { 
+    //   method: 'POST',
+    //   body: JSON.stringify({ plan })
+    // });
+     
+    // setIsSubscribed(true);
+    // toast.success(`Successfully subscribed to ${plan} plan!`);
+
+    setShowSubscriptionDialog(false);
+    
+    // TODO: For paid plans (monthly/yearly), integrate with Stripe
+    // 1. Create Stripe checkout session:
+    //    POST /api/stripe/create-checkout-session
+    //    Body: { creatorUsername: username, plan: plan, successUrl, cancelUrl }
+    // 2. Redirect to Stripe: window.location.href = checkoutSession.url
+    // 3. After payment, Stripe redirects to successUrl
+    // 4. On success page, verify payment and update subscription status
+      const token = localStorage.getItem("userToken");
+    if (plan === "free") {
+      // TODO: Call your backend to create free subscription
+      // POST /api/subscribe
+      // Body: { creatorUsername: username, plan: 'free' }
+    
+    const response = await axios.post(`http://localhost:5000/api/payment/create-order/free`, {
+        username : username, 
+        plan: 'free' 
+        
+
+      
+    },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+    });
+    const final = await axios.post('http://localhost:5000/api/payment/free/verify', { 
+
+        order_id: response.data.order_id, 
+        creator_id: response.data.creator_id,
+        username : username
+       
+},
+{
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+    });
+
+
+
+    localStorage.setItem("subscriptionId",`${final.data.subscription._id}`);
+  
+    console.log(final.data)
+
+   
+      
+      setIsSubscribed(true);
+      setCurrentPlan('free');
+      toast.success("Successfully subscribed to free plan!");
+    } else {
+      // For paid plans, you would redirect to Stripe here
+      
+      
+     // await fetch(`http://localhost:5000/api/auth/creator/${username}`).then(res => res.json()).then(data => console.log(data));
+
+      if (plan === "monthly"){
+        const response = await axios.post(`http://localhost:5000/api/payment/create-order`, {
+        username : username, 
+        plan: 'paid', 
+        amount:amountq.monthly?? 0,
+        
+
+      
+    },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+    });
+
+       const final = await axios.post('http://localhost:5000/api/payment/verify', { 
+
+        order_id: response.data.order_id, 
+        creator_id: response.data.creator_id,
+        amount:amountq.monthly, 
+        username : username,
+         tim : "m"
+        
+       
+},
+{
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+    });
+
+
+      };
+      if (plan === "yearly"){
+        const response = await axios.post(`http://localhost:5000/api/payment/create-order`, {
+        username : username, 
+        plan: 'paid', 
+        amount:amountq.yearly ,
+         
+       
+
+      
+    },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+    });
+    const final = await axios.post('http://localhost:5000/api/payment/verify', { 
+
+        order_id: response.data.order_id, 
+        creator_id: response.data.creator_id,
+        amount:amountq.yearly ,
+
+        username : username,
+         tim : "y"
+       
+},
+{
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+    });
+
+
+  }
+      //toast.success(`Redirecting to Stripe checkout for ${plan} plan...`);
+      
+      // Simulate payment - in real app, this happens after Stripe redirect
+    //   setTimeout(() => {
+    //     setIsSubscribed(true);
+    //     setCurrentPlan(plan);
+    //   }, 1000);
+    // }
+    setIsSubscribed(true);
+    setCurrentPlan(plan);
+}
+
+    // Update subscriber count instantly
+    setCreator(prev => ({
+      ...prev,
+      subscriberCount: prev.subscriberCount + 1,
+    }));
+  };
+
+   const handleUnsubscribe = async () => {
+    // TODO: Handle unsubscribe API
+    // Example: await fetch(`/api/unsubscribe/${username}`, { method: 'POST' });
+     // 2 .Prevent unsubscribe if user has active paid subscription
+    if (currentPlan === 'monthly' || currentPlan === 'yearly') {
+      toast.error("Cannot unsubscribe from paid subscription. Please wait for it to expire or manage through Subscriptions page.");
+      return;
+    }
+    
+    // TODO: Call your backend to cancel free subscription
+    // POST /api/unsubscribe
+    // Body: { creatorUsername: username }
+    const subsId = localStorage.getItem("subscriptionId");
+    if (subsId === ""){
+        return
+    }
+    const token = localStorage.getItem("userToken");
+    axios.delete(`http://localhost:5000/api/payment/unsubscribe/${subsId}`,{
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+    });
+
+
+    setIsSubscribed(false);
+    setCurrentPlan(null);
+    toast.success("Unsubscribed successfully!");
     
     // Update subscriber count instantly
     setCreator(prev => ({
       ...prev,
-      subscriberCount: prev.subscriberCount + (isSubscribed ? -1 : 1),
+      subscriberCount: prev.subscriberCount - 1,
     }));
+  };
+   const canAccessPaidContent = currentPlan === 'monthly' || currentPlan === 'yearly';
+
+  const handleUpgrade = () => {
+    setShowSubscriptionDialog(true);
   };
 
   return (
@@ -84,19 +371,23 @@ const CreatorProfile = () => {
           <CardHeader>
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-3xl">
-                  {creator.name.charAt(0)}
-                </div>
+                
+                   {/* {creator?.name? creator.name.charAt(0): "?"} */}
+                      { creator === mockCreatorData ? (
+                     <div>Loading profile...</div>
+                   ) : (
+                     <ProfileCard user={creator} />
+                   )}
                 <div>
-                  <CardTitle className="text-2xl">{creator.name}</CardTitle>
-                  <p className="text-muted-foreground">@{creator.username}</p>
+                  <CardTitle className="text-2xl">{creator?.name}</CardTitle>
+                  <p className="text-muted-foreground">@{creator?.username}</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {creator.subscriberCount} subscribers
+                    {creator?.subscriberCount} subscribers
                   </p>
                 </div>
               </div>
               <Button 
-                onClick={handleSubscribe}
+                onClick={() => isSubscribed ? handleUnsubscribe() : setShowSubscriptionDialog(true)}
                 variant={isSubscribed ? "outline" : "default"}
                 size="lg"
               >
@@ -105,12 +396,17 @@ const CreatorProfile = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">{creator.bio}</p>
+             <p className="text-foreground mb-4">{creator?.bio}</p>
+            {currentPlan && (
+              <Badge variant={currentPlan === 'free' ? 'secondary' : 'default'}>
+                {currentPlan === 'free' ? 'Free Subscriber' : `Premium - ${currentPlan}`}
+              </Badge>
+            )}
           </CardContent>
         </Card>
 
         {/* Posts */}
-        <div className="space-y-6">
+        {/* <div className="space-y-6">
           <h2 className="text-2xl font-bold text-foreground">Posts</h2>
           {posts.length === 0 ? (
             <Card>
@@ -127,11 +423,112 @@ const CreatorProfile = () => {
                 createdAt={post.createdAt}
               />
             ))
+          )} */}
+           <div className="space-y-4">
+          <h2 className="text-2xl font-bold mb-4">Posts</h2>
+      
+          {posts.length === 0 ? (
+  <div className="text-center py-10 text-muted-foreground">
+    This creator has no posts yet.
+  </div>
+) : (
+  posts.map((post) => {
+    const isLocked = post.access_type === "paid" && !canAccessPaidContent;
+    return (
+      <Card key={post.id} className={isLocked ? "opacity-75" : ""}>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <CardTitle className="text-xl flex items-center gap-2">
+                {post.title}
+                {isLocked && (
+                  <Lock className="w-4 h-4 text-muted-foreground" />
+                )}
+              </CardTitle>
+              <CardDescription>
+                {new Date(post.createdAt).toLocaleDateString()}
+              </CardDescription>
+            </div>
+            <Badge
+              variant={post.access_type === "free" ? "secondary" : "default"}
+            >
+              {post.access_type === "free" ? "Free" : "Premium"}
+            </Badge>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          {isLocked ? (
+            <div className="text-center py-8">
+              <Lock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground mb-4">
+                This content is available only for premium subscribers.
+              </p>
+              <Button onClick={handleUpgrade}>Upgrade to Premium</Button>
+            </div>
+          ) : (
+            <>
+              {post.mediaUrl && (
+                <div className="rounded-lg overflow-hidden">
+                  {post.contentType === "image" && (
+                    <img src={post.mediaUrl} className="rounded-lg w-full" />
+                  )}
+
+                  {post.contentType === "video" && (
+                    <video
+                      src={post.mediaUrl}
+                      controls
+                      poster={post.thumbnailUrl}
+                      className="w-full rounded-lg"
+                    ></video>
+                  )}
+
+                  {post.contentType === "audio" && (
+                    <AudioPlayer
+                      audio={post.mediaUrl}
+                      thumbnail={post.thumbnailUrl}
+                    />
+                  )}
+
+                  {post.content && (
+                    <p className="text-foreground mb-4">{post.content}</p>
+                  )}
+                </div>
+              )}
+            </>
           )}
+        </CardContent>
+      </Card>
+    );
+  })
+)}
         </div>
-      </div>
+         {isloading && (
+  <div 
+    className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
+  >
+    <div className="bg-white rounded-xl p-8 shadow-xl w-80 text-center">
+      <div className="loader mx-auto mb-4"></div>
+      <h2 className="text-lg font-semibold">loading…</h2>
+      <p className="text-muted-foreground text-sm mt-2">
+        Please wait, loading creator data.
+      </p>
     </div>
+  </div>
+)}
+      </div>
+      <SubscriptionDialog
+        open={showSubscriptionDialog}
+        onOpenChange={setShowSubscriptionDialog}
+        creatorName={creator.name}
+        onSubscribe={handleSubscribe}
+        prices={amountq}
+      />
+    </div>
+    
+    
   );
 };
 
 export default CreatorProfile;
+

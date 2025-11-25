@@ -6,20 +6,32 @@ const postSchema = new mongoose.Schema({
     required: [true, 'Title is required'],
     trim: true
   },
-  description: {
+  content: {
     type: String,
     required: [true, 'Description is required']
   },
-  image_url: {
+  // image_url: {
+  //   type: String,
+  //   default: ''
+  // },
+  mediaUrl :{
+    type:String,
+    default:""
+  },
+  contentType : {
     type: String,
-    default: ''
+    default : "text"
+  },
+  thumbnailUrl:{
+    type: String ,
+    default : ""
   },
   access_type: {
     type: String,
     enum: ['free', 'paid'],
     default: 'free'
   },
-  creator_id: {
+  creatorId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true

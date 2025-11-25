@@ -11,6 +11,8 @@ import CreatorProfile from "./pages/CreatorProfile";
 import CreatorLogin from "./pages/creator/CreatorLogin";
 import CreatorSignup from "./pages/creator/CreatorSignup";
 import CreatorDashboard from "./pages/creator/CreatorDashboard";
+import CreatorSettings from "./pages/creator/CreatorSettings";
+import SubscriptionManagement from "./pages/SubscriptionManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,11 +31,12 @@ const App = () => (
           <Route path="/explore" element={<Explore />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/creator/:username" element={<CreatorProfile />} />
-          
+          <Route path="/subscriptions" element={<SubscriptionManagement />} />
           {/* Creator Routes */}
           <Route path="/creator/login" element={<CreatorLogin />} />
           <Route path="/creator/signup" element={<CreatorSignup />} />
           <Route path="/creator/dashboard" element={<CreatorDashboard />} />
+          <Route path="/creator/settings" element={<CreatorSettings />} />
           
           {/* 404 */}
           <Route path="*" element={<NotFound />} />

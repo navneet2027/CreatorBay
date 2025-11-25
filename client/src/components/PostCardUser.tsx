@@ -1,7 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import  AudioPlayer  from "./AudioPlayer";
 import { Music } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 interface PostCardProps {
   title: string;
@@ -11,8 +10,7 @@ interface PostCardProps {
   contentType?: string;
   mediaUrl?: string;
   thumbnailUrl?: string;
-  access_type?: string;
-  onEdit?: () => void;
+  access_type?: string 
 }
 
 // export const PostCard = ({ title, content, createdAt, authorName }: PostCardProps) => {
@@ -24,8 +22,8 @@ export const PostCard = ({
   contentType = "text",
   mediaUrl,
   thumbnailUrl,
-  access_type,
-  onEdit
+  access_type
+  
 }: PostCardProps) => {
   return (
     <Card>
@@ -33,14 +31,7 @@ export const PostCard = ({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">{title}</CardTitle>
           <div className="flex items-center gap-2">
-            {onEdit && (
-              <button
-                onClick={onEdit}
-                className="text-xs text-primary hover:underline"
-              >
-                Edit
-              </button>
-            )}
+        
             <CardDescription className="text-xs">
               {new Date(createdAt).toLocaleDateString()}
             </CardDescription>
@@ -89,15 +80,11 @@ export const PostCard = ({
     thumbnail={thumbnailUrl} 
   
   />
-)}       <div>
-  {/* Description */}
+)}
+
+        {/* Description */}
         <p className="text-sm text-muted-foreground whitespace-pre-wrap">{content}</p>
-</div> 
-         <Badge variant={access_type === 'free' ? 'secondary' : 'default'}>
-                      {access_type === 'free' ? 'Free' : 'Premium'}
-                    </Badge>
       </CardContent>
-      
     </Card>
   );
 };
