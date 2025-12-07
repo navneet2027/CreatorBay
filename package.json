@@ -1,7 +1,7 @@
 {
   "name": "creatorbay",
   "version": "1.0.0",
-  "description": "CreatorBay - A Creator Subscription Platform (MERN Stack)",
+  "description": "CreatorBay - A Creator Subscription Platform",
   "main": "index.js",
   "scripts": {
     "install-server": "cd server && npm install",
@@ -21,7 +21,7 @@
     "creator-platform",
     "subscription"
   ],
-  "author": "Your Name",
+  "author": "Navneet",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"

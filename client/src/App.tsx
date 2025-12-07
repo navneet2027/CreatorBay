@@ -14,6 +14,7 @@ import CreatorDashboard from "./pages/creator/CreatorDashboard";
 import CreatorSettings from "./pages/creator/CreatorSettings";
 import SubscriptionManagement from "./pages/SubscriptionManagement";
 import NotFound from "./pages/NotFound";
+import WelcomePage from "./pages/welcome";
 
 const queryClient = new QueryClient();
 
@@ -25,7 +26,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           {/* User Routes */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<WelcomePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/explore" element={<Explore />} />

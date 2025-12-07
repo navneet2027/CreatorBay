@@ -184,7 +184,7 @@ router.delete('/:id', protect, creatorOnly, async (req, res) => {
     }
 
     // Check if user owns the post
-    if (post.creator_id.toString() !== req.user._id.toString()) {
+    if (post.creatorId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized to delete this post' });
     }
 
