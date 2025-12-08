@@ -242,7 +242,7 @@ export default function SubscriptionManagement() {
     }
     setIsloading(true);
     try {
-      const subs = axios.get('http://localhost:5000/api/payment/subscriptions', {
+      const subs = axios.get('https://creatorbay.onrender.com/api/payment/subscriptions', {
         headers: {
           Authorization: `Bearer ${userToken}`
         }

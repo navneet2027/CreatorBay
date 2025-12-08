@@ -584,7 +584,7 @@ const CreatorProfile = () => {
 
     const fetchData = async () => {
       try {
-        const check = await axios.get(`http://localhost:5000/api/payment/check-subscription/${username}`, {
+        const check = await axios.get(`https://creatorbay.onrender.com/api/payment/check-subscription/${username}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setIsSubscribed(check.data.isSubscribed);
@@ -594,7 +594,7 @@ const CreatorProfile = () => {
           console.log(check.data.subscription);
         }
 
-        const creatorsget = await axios.get(`http://localhost:5000/api/auth/creator/${username}`, {
+        const creatorsget = await axios.get(`https://creatorbay.onrender.com/api/auth/creator/${username}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setCreator(prev => {
@@ -602,7 +602,7 @@ const CreatorProfile = () => {
           return creatorsget.data[0];
         });
 
-        axios.get(`http://localhost:5000/api/auth/creator/subscribers/${username}`, {
+        axios.get(`https://creatorbay.onrender.com/api/auth/creator/subscribers/${username}`, {
           headers: { Authorization: `Bearer ${token}` }
         }).then(res => setAmountq({
           monthly: res.data.monthly,
@@ -610,7 +610,7 @@ const CreatorProfile = () => {
           discount: res.data.discount
         }));
 
-        const postget = await axios.get(`http://localhost:5000/api/posts/creator/${username}`, {
+        const postget = await axios.get(`https://creatorbay.onrender.com/api/posts/creator/${username}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -637,13 +637,13 @@ const CreatorProfile = () => {
     setShowSubscriptionDialog(false);
 
     if (plan === "free") {
-      const response = await axios.post(`http://localhost:5000/api/payment/create-order/free`, {
+      const response = await axios.post(`https://creatorbay.onrender.com/api/payment/create-order/free`, {
         username: username,
         plan: 'free'
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const final = await axios.post('http://localhost:5000/api/payment/free/verify', {
+      const final = await axios.post('https://creatorbay.onrender.com/api/payment/free/verify', {
         order_id: response.data.order_id,
         creator_id: response.data.creator_id,
         username: username
@@ -659,7 +659,7 @@ const CreatorProfile = () => {
       toast.success("Successfully subscribed to free plan!");
     } else {
       if (plan === "monthly") {
-        const response = await axios.post(`http://localhost:5000/api/payment/create-order`, {
+        const response = await axios.post(`https://creatorbay.onrender.com/api/payment/create-order`, {
           username: username,
           plan: 'paid',
           amount: amountq.monthly ?? 0,
@@ -667,7 +667,7 @@ const CreatorProfile = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        const final = await axios.post('http://localhost:5000/api/payment/verify', {
+        const final = await axios.post('https://creatorbay.onrender.com/api/payment/verify', {
           order_id: response.data.order_id,
           creator_id: response.data.creator_id,
           amount: amountq.monthly,
@@ -678,14 +678,14 @@ const CreatorProfile = () => {
         });
       }
       if (plan === "yearly") {
-        const response = await axios.post(`http://localhost:5000/api/payment/create-order`, {
+        const response = await axios.post(`https://creatorbay.onrender.com/api/payment/create-order`, {
           username: username,
           plan: 'paid',
           amount: amountq.yearly,
         }, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        const final = await axios.post('http://localhost:5000/api/payment/verify', {
+        const final = await axios.post('https://creatorbay.onrender.com/api/payment/verify', {
           order_id: response.data.order_id,
           creator_id: response.data.creator_id,
           amount: amountq.yearly,
@@ -716,7 +716,7 @@ const CreatorProfile = () => {
       return;
     }
     const token = localStorage.getItem("userToken");
-    axios.delete(`http://localhost:5000/api/payment/unsubscribe/${subsId}`, {
+    axios.delete(`https://creatorbay.onrender.com/api/payment/unsubscribe/${subsId}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 

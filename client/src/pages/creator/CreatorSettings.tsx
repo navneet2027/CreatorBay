@@ -248,7 +248,7 @@ export default function CreatorSettings() {
     const username = localStorage.getItem("userName");
     console.log(username);
     
-    fetch(`http://localhost:5000/api/auth/creator/${username}`)
+    fetch(`https://creatorbay.onrender.com/api/auth/creator/${username}`)
       .then(res => res.json())
       .then(data => setPricing(prev => ({
         ...prev,
@@ -293,7 +293,7 @@ export default function CreatorSettings() {
     const token = localStorage.getItem("userToken");
     
     axios.post(
-      `http://localhost:5000/api/auth/creator/pricing/${username}`,
+      `https://creatorbay.onrender.com/api/auth/creator/pricing/${username}`,
       {
         monthly: pricing.monthly,
         yearly: pricing.yearly,

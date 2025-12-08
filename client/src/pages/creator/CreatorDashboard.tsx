@@ -803,7 +803,7 @@ const CreatorDashboard = () => {
 
     const profdata = async () => {
       const res = await axios.get(
-        "http://localhost:5000/api/auth/me",
+        "https://creatorbay.onrender.com/api/auth/me",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -819,7 +819,7 @@ const CreatorDashboard = () => {
     const fetchData = async () => {
       try {
         const postsRes = await axios.get(
-          `http://localhost:5000/api/posts/creator/${creatorUserName}`
+          `https://creatorbay.onrender.com/api/posts/creator/${creatorUserName}`
         );
 
         setPosts(prev => {
@@ -828,7 +828,7 @@ const CreatorDashboard = () => {
         });
 
         const subsRes = await axios.get(
-          `http://localhost:5000/api/payment/subscribers`,
+          `https://creatorbay.onrender.com/api/payment/subscribers`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -865,7 +865,7 @@ const CreatorDashboard = () => {
       if (newPost.mediaFile) {
         formData.append("media", newPost.mediaFile);
         const res = await axios.post(
-          "http://localhost:5000/api/posts/save",
+          "https://creatorbay.onrender.com/api/posts/save",
           formData,
           {
             headers: {
@@ -881,7 +881,7 @@ const CreatorDashboard = () => {
       if (newPost.contentType === 'video' && newPost.thumbnailFile) {
         formData.set("media", newPost.thumbnailFile);
         console.log(newPost.thumbnailFile);
-        const thumb = await axios.post("http://localhost:5000/api/posts/save", formData, {
+        const thumb = await axios.post("https://creatorbay.onrender.com/api/posts/save", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`
@@ -894,7 +894,7 @@ const CreatorDashboard = () => {
       if (newPost.contentType === 'audio' && newPost.thumbnailFile) {
         formData.set("media", newPost.thumbnailFile);
         console.log(newPost.thumbnailFile);
-        const thumb = await axios.post("http://localhost:5000/api/posts/save", formData, {
+        const thumb = await axios.post("https://creatorbay.onrender.com/api/posts/save", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`
@@ -916,7 +916,7 @@ const CreatorDashboard = () => {
           updatedAt: new Date()
         };
 
-        await axios.put(`http://localhost:5000/api/posts/${updatedPostData.id}`, updatedPostData, {
+        await axios.put(`https://creatorbay.onrender.com/api/posts/${updatedPostData.id}`, updatedPostData, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -946,7 +946,7 @@ const CreatorDashboard = () => {
           access_type: postType,
           createdAt: new Date()
         };
-        await axios.post(`http://localhost:5000/api/posts/`, postData, {
+        await axios.post(`https://creatorbay.onrender.com/api/posts/`, postData, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -1009,14 +1009,14 @@ const CreatorDashboard = () => {
     if (!postToDelete) return;
     
     try {
-      await axios.delete(`http://localhost:5000/api/posts/${postToDelete._id}`,
+      await axios.delete(`https://creatorbay.onrender.com/api/posts/${postToDelete._id}`,
         { headers: {
             Authorization: `Bearer ${token}`
           }
           });
       
       const postsRes = await axios.get(
-        `http://localhost:5000/api/posts/creator/${creatorUserName}`
+        `https://creatorbay.onrender.com/api/posts/creator/${creatorUserName}`
       );
       
       setPosts(prev => {

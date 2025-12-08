@@ -716,7 +716,7 @@ const Explore = () => {
     setIsloading(true);
     const fetchData = async () => {
       try {
-        const creatorgetall = await axios.get('http://localhost:5000/api/auth/getall');
+        const creatorgetall = await axios.get('https://creatorbay.onrender.com/api/auth/getall');
 
         setCreators(prev => {
           if (JSON.stringify(prev) === JSON.stringify(creatorgetall.data)) return prev;

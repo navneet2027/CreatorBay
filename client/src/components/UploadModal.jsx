@@ -18,9 +18,10 @@ export default function UploadModal({ onClose }) {
     // axios cancel token
     cancelTokenSource.current = axios.CancelToken.source();
 
+// "http://localhost:5000/api/upload"
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/upload",
+        "https://creatorbay.onrender.com/api/upload",
         formData,
         {
           cancelToken: cancelTokenSource.current.token,

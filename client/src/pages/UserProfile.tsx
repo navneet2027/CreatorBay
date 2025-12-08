@@ -180,7 +180,7 @@ const UserProfile = () => {
 
     setIsloading(true);
     try {
-      const s = axios.get('http://localhost:5000/api/auth/me', {
+      const s = axios.get('https://creatorbay.onrender.com/api/auth/me', {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -190,7 +190,7 @@ const UserProfile = () => {
         setProfilepic(res.data.profilePic);
       });
 
-      const subs = axios.get('http://localhost:5000/api/payment/subscriptions/profile', {
+      const subs = axios.get('https://creatorbay.onrender.com/api/payment/subscriptions/profile', {
         headers: {
           Authorization: `Bearer ${token}`
         }

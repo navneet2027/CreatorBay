@@ -152,7 +152,7 @@ const CreatorLogin = () => {
 
     try {
       setIsloading(true);
-      const response = await axios.post("http://localhost:5000/api/auth/login", {
+      const response = await axios.post("https://creatorbay.onrender.com/api/auth/login", {
         email: email,
         password: password,
       });

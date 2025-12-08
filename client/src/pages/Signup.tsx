@@ -171,7 +171,7 @@ const Signup = () => {
 
     try {
       setIsloading(true);
-      const response = await axios.post("http://localhost:5000/api/auth/signup", {
+      const response = await axios.post("https://creatorbay.onrender.com/api/auth/signup", {
         name: formData.name,
         username: formData.username,
         email: formData.email,
