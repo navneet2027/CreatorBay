@@ -509,6 +509,11 @@ export default function ProfileCard({ user }) {
               src={profilePic}
               alt="Profile"
               className="w-full h-full object-cover"
+               style={{ filter: 'blur(5px)' }}
+ onLoad={(e) => {
+  const img = e.target as HTMLImageElement;
+  img.style.filter = "blur(0px)";
+}}
               onError={(e) => {
                 // Fallback if image fails to load
                 e.currentTarget.style.display = 'none';

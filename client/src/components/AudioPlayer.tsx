@@ -19,6 +19,7 @@ export default function AudioPlayer({
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [muted, setMuted] = useState(false);
+   const [loaded, setLoaded] = useState(false);
 
   // fallback thumbnail (uploaded file path)
   const fallbackThumb = "sandbox:/mnt/data/e24bf2e1-a06c-4474-b2b6-4ef51e34ea88.png";
@@ -99,7 +100,12 @@ export default function AudioPlayer({
               src={thumbUrl}
               alt="thumbnail"
               className={`w-full h-full object-cover ${isPlaying ? "animate-spin-slow" : ""}`}
-              style={{ transformOrigin: "50% 50%" }}
+              style={{transformOrigin: "50% 50%",
+              filter: loaded ? "blur(0px)" : "blur(12px)",
+              transition: "0.4s ease",
+          }}
+
+              
             />
           </div>
 

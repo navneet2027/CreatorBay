@@ -607,7 +607,7 @@ export const CreatorCard = ({ id, name, username, bio, subscriberCount, profileP
               <User className="w-10 h-10" />
             </div>
           ) : (
-            <ProfileCard user={{ profilePic }} />
+            <ProfileCard user={{ profilePic,medium:true}} />
           )}
         </div>
 

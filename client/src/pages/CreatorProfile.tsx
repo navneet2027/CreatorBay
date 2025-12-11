@@ -885,13 +885,23 @@ const CreatorProfile = () => {
                         {post.mediaUrl && (
                           <div className="rounded-lg overflow-hidden">
                             {post.contentType === "image" && (
-                              <img src={post.mediaUrl} className="rounded-lg w-full" alt={post.title} />
+                              <img src={post.mediaUrl} className="rounded-lg w-full" alt={post.title} loading="lazy"
+  style={{ filter: 'blur(5px)' }}
+ onLoad={(e) => {
+  const img = e.target as HTMLImageElement;
+  img.style.filter = "blur(0px)";
+}}/>
                             )}
 
                             {post.contentType === "video" && (
                               <video
                                 src={post.mediaUrl}
                                 controls
+                                 style={{ filter: "blur(10px)", transition: "0.3s ease" }}
+  onLoadedData={(e) => {
+    const vid = e.target as HTMLVideoElement;
+    vid.style.filter = "blur(0px)";
+  }}
                                 poster={post.thumbnailUrl}
                                 className="w-full rounded-lg"
                               ></video>
@@ -901,6 +911,7 @@ const CreatorProfile = () => {
                               <AudioPlayer
                                 audio={post.mediaUrl}
                                 thumbnail={post.thumbnailUrl}
+                                
                               />
                             )}
                           </div>

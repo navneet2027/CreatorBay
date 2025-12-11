@@ -152,6 +152,7 @@ const Login = () => {
       const response = await axios.post("https://creatorbay.onrender.com/api/auth/login", {
         email: email,
         password: password,
+        role: "user"
       });
 
       localStorage.setItem("userToken", response.data.token);

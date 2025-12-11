@@ -76,7 +76,7 @@ router.post('/signup', async (req, res) => {
 // @access  Public
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password ,role} = req.body;
 
     // Validation
     if (!email || !password) {
@@ -95,6 +95,9 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    if (role==="user" && user.role !=="user"){
+      return res.status(401).json({message: 'You are a creator login from creator page ! '})
+    }
     res.json({
       _id: user._id,
       name: user.name,
@@ -123,7 +126,7 @@ router.get('/me', protect, async (req, res) => {
       email: req.user.email,
       role: req.user.role,
       profilePic :req.user.profilePic,
-        allowed : true
+      allowed : true
 
     });
   } catch (error) {

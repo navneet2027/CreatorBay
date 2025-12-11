@@ -740,14 +740,10 @@
 
 
 
-
-
-
-
-
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Settings, User, Heart, LayoutDashboard } from "lucide-react";
+import { LogOut, Settings, User, LayoutDashboard, Menu, X } from "lucide-react";
 
 interface NavbarProps {
   userType?: string;
@@ -756,28 +752,36 @@ interface NavbarProps {
 
 export const Navbar = ({ userType, userName }: NavbarProps) => {
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
-    // TODO: Call logout API
     localStorage.removeItem("userToken");
     localStorage.removeItem("userName");
     localStorage.removeItem("Name");
+    setIsMobileMenuOpen(false);
     navigate(userType === "creator" ? "/creator/login" : "/login");
+  };
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setIsMobileMenuOpen(false);
   };
 
   return (
     <nav className="bg-black border-b border-gray-800 sticky top-0 z-50 backdrop-blur-sm bg-black/95">
-      <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-8">
+      <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
           <h1 
-            className="text-2xl font-bold text-white flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate(userType === "creator" ? "/creator/dashboard" : "/explore")}
+            className="text-xl sm:text-2xl font-bold text-white flex items-center gap-1 sm:gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => handleNavigation(userType === "creator" ? "/creator/dashboard" : "/explore")}
           >
-            <span className="bg-gradient-to-r from-orange-500 to-orange-600 px-3 py-1 rounded-lg">Creator</span>
-            <span>Bay</span>
+            <span className="bg-gradient-to-r from-orange-500 to-orange-600 px-2 sm:px-3 py-1 rounded-lg text-sm sm:text-base">Creator</span>
+            <span className="text-sm sm:text-base">Bay</span>
           </h1>
           
-          <div className="hidden md:flex items-center gap-6">
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center gap-6">
             {userType === "creator" && (
               <a 
                 href="#" 
@@ -800,18 +804,16 @@ export const Navbar = ({ userType, userName }: NavbarProps) => {
             >
               Explore
             </a>
-            {/* {userType === "user" && ( */}
-              <a 
-                href="#" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate("/subscriptions");
-                }}
-                className="text-gray-400 hover:text-white font-medium transition-colors cursor-pointer"
-              >
-                Subscriptions
-              </a>
-            {/* )} */}
+            <a 
+              href="#" 
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/subscriptions");
+              }}
+              className="text-gray-400 hover:text-white font-medium transition-colors cursor-pointer"
+            >
+              Subscriptions
+            </a>
             <a 
               href="#" 
               className="text-gray-400 hover:text-white font-medium transition-colors cursor-pointer"
@@ -819,26 +821,16 @@ export const Navbar = ({ userType, userName }: NavbarProps) => {
               Trending
             </a>
           </div>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          {userName && (
-            <>
-              <span className="text-sm text-gray-300 hidden lg:inline">
-                Welcome, <span className="text-white font-medium">{userName}</span>
-              </span>
-              
-              {userType === "creator" && (
-                <>
-                  <Button 
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate("/creator/dashboard")}
-                    className="text-gray-300 hover:text-white hover:bg-neutral-900 border-0 md:hidden"
-                  >
-                    <LayoutDashboard className="w-4 h-4 mr-2" />
-                    <span className="hidden sm:inline">Dashboard</span>
-                  </Button>
+          
+          {/* Desktop Actions */}
+          <div className="hidden lg:flex items-center gap-3">
+            {userName && (
+              <>
+                <span className="text-sm text-gray-300">
+                  Welcome, <span className="text-white font-medium">{userName}</span>
+                </span>
+                
+                {userType === "creator" && (
                   <Button 
                     variant="ghost"
                     size="sm"
@@ -846,41 +838,264 @@ export const Navbar = ({ userType, userName }: NavbarProps) => {
                     className="text-gray-300 hover:text-white hover:bg-neutral-900 border-0"
                   >
                     <Settings className="w-4 h-4 mr-2" />
-                    <span className="hidden sm:inline">Settings</span>
+                    Settings
                   </Button>
-                </>
-              )}
-              
-              {/* {userType === "user" && ( */}
-                <>
-                  <Button 
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate("/profile")}
-                    className="text-gray-300 hover:text-white hover:bg-neutral-900 border-0"
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    <span className="hidden sm:inline">Profile</span>
-                  </Button>
-                </>
-              {/* )} */}
-              
-              <Button 
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="text-gray-300 hover:text-white hover:bg-neutral-900 border-0"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Logout</span>
-              </Button>
-            </>
-          )}
+                )}
+                
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/profile")}
+                  className="text-gray-300 hover:text-white hover:bg-neutral-900 border-0"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
+                </Button>
+                
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-gray-300 hover:text-white hover:bg-neutral-900 border-0"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="lg:hidden p-2 text-gray-400 hover:text-white transition-colors"
+          >
+            {isMobileMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </button>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden mt-4 pb-4 border-t border-gray-800 pt-4">
+            <div className="flex flex-col space-y-3">
+              {userName && (
+                <div className="px-3 py-2 text-sm text-gray-300 border-b border-gray-800 pb-3 mb-2">
+                  Welcome, <span className="text-white font-medium">{userName}</span>
+                </div>
+              )}
+
+              {userType === "creator" && (
+                <button
+                  onClick={() => handleNavigation("/creator/dashboard")}
+                  className="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-neutral-900 rounded-lg transition-colors text-left"
+                >
+                  <LayoutDashboard className="w-5 h-5" />
+                  <span>Dashboard</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => handleNavigation("/explore")}
+                className="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-neutral-900 rounded-lg transition-colors text-left"
+              >
+                <span className="w-5 h-5 flex items-center justify-center">🔍</span>
+                <span>Explore</span>
+              </button>
+
+              <button
+                onClick={() => handleNavigation("/subscriptions")}
+                className="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-neutral-900 rounded-lg transition-colors text-left"
+              >
+                <span className="w-5 h-5 flex items-center justify-center">💝</span>
+                <span>Subscriptions</span>
+              </button>
+
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-neutral-900 rounded-lg transition-colors text-left"
+              >
+                <span className="w-5 h-5 flex items-center justify-center">🔥</span>
+                <span>Trending</span>
+              </button>
+
+              <div className="border-t border-gray-800 pt-3 mt-3"></div>
+
+              {userType === "creator" && (
+                <button
+                  onClick={() => handleNavigation("/creator/settings")}
+                  className="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-neutral-900 rounded-lg transition-colors text-left"
+                >
+                  <Settings className="w-5 h-5" />
+                  <span>Settings</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => handleNavigation("/profile")}
+                className="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-neutral-900 rounded-lg transition-colors text-left"
+              >
+                <User className="w-5 h-5" />
+                <span>Profile</span>
+              </button>
+
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-neutral-900 rounded-lg transition-colors text-left"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
 };
+
+
+
+
+// import { Button } from "@/components/ui/button";
+// import { useNavigate } from "react-router-dom";
+// import { LogOut, Settings, User, Heart, LayoutDashboard } from "lucide-react";
+
+// interface NavbarProps {
+//   userType?: string;
+//   userName?: string;
+// }
+
+// export const Navbar = ({ userType, userName }: NavbarProps) => {
+//   const navigate = useNavigate();
+
+//   const handleLogout = () => {
+//     // TODO: Call logout API
+//     localStorage.removeItem("userToken");
+//     localStorage.removeItem("userName");
+//     localStorage.removeItem("Name");
+//     navigate(userType === "creator" ? "/creator/login" : "/login");
+//   };
+
+//   return (
+//     <nav className="bg-black border-b border-gray-800 sticky top-0 z-50 backdrop-blur-sm bg-black/95">
+//       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+//         <div className="flex items-center gap-8">
+//           <h1 
+//             className="text-2xl font-bold text-white flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+//             onClick={() => navigate(userType === "creator" ? "/creator/dashboard" : "/explore")}
+//           >
+//             <span className="bg-gradient-to-r from-orange-500 to-orange-600 px-3 py-1 rounded-lg">Creator</span>
+//             <span>Bay</span>
+//           </h1>
+          
+//           <div className="hidden md:flex items-center gap-6">
+//             {userType === "creator" && (
+//               <a 
+//                 href="#" 
+//                 onClick={(e) => {
+//                   e.preventDefault();
+//                   navigate("/creator/dashboard");
+//                 }}
+//                 className="text-gray-400 hover:text-white font-medium transition-colors cursor-pointer"
+//               >
+//                 Dashboard
+//               </a>
+//             )}
+//             <a 
+//               href="#" 
+//               onClick={(e) => {
+//                 e.preventDefault();
+//                 navigate("/explore");
+//               }}
+//               className="text-gray-400 hover:text-white font-medium transition-colors cursor-pointer"
+//             >
+//               Explore
+//             </a>
+//             {/* {userType === "user" && ( */}
+//               <a 
+//                 href="#" 
+//                 onClick={(e) => {
+//                   e.preventDefault();
+//                   navigate("/subscriptions");
+//                 }}
+//                 className="text-gray-400 hover:text-white font-medium transition-colors cursor-pointer"
+//               >
+//                 Subscriptions
+//               </a>
+//             {/* )} */}
+//             <a 
+//               href="#" 
+//               className="text-gray-400 hover:text-white font-medium transition-colors cursor-pointer"
+//             >
+//               Trending
+//             </a>
+//           </div>
+//         </div>
+        
+//         <div className="flex items-center gap-3">
+//           {userName && (
+//             <>
+//               <span className="text-sm text-gray-300 hidden lg:inline">
+//                 Welcome, <span className="text-white font-medium">{userName}</span>
+//               </span>
+              
+//               {userType === "creator" && (
+//                 <>
+//                   <Button 
+//                     variant="ghost"
+//                     size="sm"
+//                     onClick={() => navigate("/creator/dashboard")}
+//                     className="text-gray-300 hover:text-white hover:bg-neutral-900 border-0 md:hidden"
+//                   >
+//                     <LayoutDashboard className="w-4 h-4 mr-2" />
+//                     <span className="hidden sm:inline">Dashboard</span>
+//                   </Button>
+//                   <Button 
+//                     variant="ghost"
+//                     size="sm"
+//                     onClick={() => navigate("/creator/settings")}
+//                     className="text-gray-300 hover:text-white hover:bg-neutral-900 border-0"
+//                   >
+//                     <Settings className="w-4 h-4 mr-2" />
+//                     <span className="hidden sm:inline">Settings</span>
+//                   </Button>
+//                 </>
+//               )}
+              
+//               {/* {userType === "user" && ( */}
+//                 <>
+//                   <Button 
+//                     variant="ghost"
+//                     size="sm"
+//                     onClick={() => navigate("/profile")}
+//                     className="text-gray-300 hover:text-white hover:bg-neutral-900 border-0"
+//                   >
+//                     <User className="w-4 h-4 mr-2" />
+//                     <span className="hidden sm:inline">Profile</span>
+//                   </Button>
+//                 </>
+//               {/* )} */}
+              
+//               <Button 
+//                 variant="ghost"
+//                 size="sm"
+//                 onClick={handleLogout}
+//                 className="text-gray-300 hover:text-white hover:bg-neutral-900 border-0"
+//               >
+//                 <LogOut className="w-4 h-4 mr-2" />
+//                 <span className="hidden sm:inline">Logout</span>
+//               </Button>
+//             </>
+//           )}
+//         </div>
+//       </div>
+//     </nav>
+//   );
+// };
 
 
 

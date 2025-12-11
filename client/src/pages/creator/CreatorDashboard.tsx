@@ -769,6 +769,7 @@ interface Creator {
   role: string;
   profilePic: string;
   allowed: true;
+ 
 }
 
 const CreatorDashboard = () => {
@@ -1170,7 +1171,7 @@ const CreatorDashboard = () => {
                     <SelectTrigger className="bg-black border-gray-800 text-white">
                       <SelectValue placeholder="Select content type" />
                     </SelectTrigger>
-                    <SelectContent className="bg-neutral-900 border-gray-800">
+                    <SelectContent className="bg-neutral-900 border-gray-800 text-white">
                       <SelectItem value="text">Text Only</SelectItem>
                       <SelectItem value="image">Image</SelectItem>
                       <SelectItem value="video">Video</SelectItem>
