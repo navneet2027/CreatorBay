@@ -837,7 +837,7 @@ const CreatorDashboard = () => {
 
         setSubscribers(prev => {
           if (
-            JSON.stringify(prev) === JSON.stringify(subsRes.data.subscibers)
+            JSON.stringify(prev) === JSON.stringify(subsRes.data)
           ) return prev;
 
           return subsRes.data;
