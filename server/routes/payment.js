@@ -429,13 +429,18 @@ router.get('/subscribers', protect, async (req, res) => {
       payment_status: 'active',
       end_date: { $gt: new Date() }
     })
-      .populate('user_id', 'name email')
+      .populate('user_id', '_id name email username')
       .sort({ createdAt: -1 });
 
-    res.json({
-      count: subscribers.length,
-      subscribers
-    });
+       const formatted = subscribers.map(c => ({
+            id: c.user_id._id,
+            name: c.user_id.name,
+            username: c.user_id.username,
+           
+
+           
+        }));
+    res.json(formatted);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

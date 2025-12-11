@@ -832,13 +832,15 @@ const CreatorDashboard = () => {
           `https://creatorbay.onrender.com/api/payment/subscribers`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
+  
+        console.log(subsRes.data)
 
         setSubscribers(prev => {
           if (
             JSON.stringify(prev) === JSON.stringify(subsRes.data.subscibers)
           ) return prev;
 
-          return subsRes.data.subscibers;
+          return subsRes.data;
         });
       } catch (err) {
         console.error(err);
@@ -1393,6 +1395,7 @@ const CreatorDashboard = () => {
                       <th className="text-left py-3 px-4 font-medium text-gray-400">Username</th>
                     </tr>
                   </thead>
+                  
                   <tbody>
                     {subscribers?.map((subscriber) => (
                       <tr key={subscriber.id} className="border-b border-gray-800 hover:bg-black/30 transition-colors">
