@@ -571,6 +571,7 @@ const CreatorProfile = () => {
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const userName = localStorage.getItem("Name") || "User";
   const [isloading, setIsloading] = useState(false);
+   const role = localStorage.getItem("role");
   const [amountq, setAmountq] = useState({ monthly: 389, yearly: 4201, discount: 10 });
 
   useEffect(() => {
@@ -766,7 +767,7 @@ const CreatorProfile = () => {
 
   return (
     <div className="min-h-screen bg-black">
-      <Navbar userType="user" userName={userName} />
+      <Navbar userType={role} userName={userName} />
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Creator Profile Card */}
