@@ -99,6 +99,8 @@ export default function AudioPlayer({
             <img
               src={thumbUrl}
               alt="thumbnail"
+                        onLoad={() => setLoaded(true)}
+
               className={`w-full h-full object-cover ${isPlaying ? "animate-spin-slow" : ""}`}
               style={{transformOrigin: "50% 50%",
               filter: loaded ? "blur(0px)" : "blur(12px)",

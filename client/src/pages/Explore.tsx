@@ -712,15 +712,26 @@ const Explore = () => {
       navigate("/login");
       return;
     }
+    const creatorUserName = localStorage.getItem("userName");
+
 
     setIsloading(true);
     const fetchData = async () => {
       try {
         const creatorgetall = await axios.get('https://creatorbay.onrender.com/api/auth/getall');
+        console.log(creatorgetall.data)
+        const po = [];
+        creatorgetall.data.forEach(element => {
+          if (element.username === creatorUserName) return ;
+          
+          po.push(element)
 
+          
+        });
+        console.log(po)
         setCreators(prev => {
-          if (JSON.stringify(prev) === JSON.stringify(creatorgetall.data)) return prev;
-          return creatorgetall.data;
+          if (JSON.stringify(prev) === JSON.stringify(po)) return prev;
+          return po;
         });
       } catch {
         // Handle error silently
@@ -774,7 +785,7 @@ const Explore = () => {
         {/* Stats Bar - Boosty style */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-neutral-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-colors">
-            <div className="text-3xl font-bold text-orange-500 mb-1">{creators.length}</div>
+            <div className="text-3xl font-bold text-orange-500 mb-1">{creators.length + 1}</div>
             <div className="text-gray-400 text-sm">Active Creators</div>
           </div>
           <div className="bg-neutral-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-colors">
@@ -803,6 +814,7 @@ const Explore = () => {
         {/* Creators Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCreators.map((creator) => (
+          
             <CreatorCard key={creator.id} {...creator} />
           ))}
           {filteredCreators.length === 0 && !isloading && (
