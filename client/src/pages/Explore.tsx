@@ -695,6 +695,7 @@ const Explore = () => {
   const [isloading, setIsloading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const role = localStorage.getItem("role");
+  let [len,setlen] =useState(0) ;
   const filteredCreators = creators.filter((creator) =>
     creator.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -721,13 +722,18 @@ const Explore = () => {
         const creatorgetall = await axios.get('https://creatorbay.onrender.com/api/auth/getall');
         console.log(creatorgetall.data)
         const po = [];
+        setlen(creatorgetall.data.length)
         creatorgetall.data.forEach(element => {
-          if (element.username === creatorUserName) return ;
+          if (element.username === creatorUserName){
+          
+            return
+          }  ;
           
           po.push(element)
 
           
         });
+      
         console.log(po)
         setCreators(prev => {
           if (JSON.stringify(prev) === JSON.stringify(po)) return prev;
@@ -785,7 +791,7 @@ const Explore = () => {
         {/* Stats Bar - Boosty style */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-neutral-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-colors">
-            <div className="text-3xl font-bold text-orange-500 mb-1">{creators.length + 1}</div>
+            <div className="text-3xl font-bold text-orange-500 mb-1">{len }</div>
             <div className="text-gray-400 text-sm">Active Creators</div>
           </div>
           <div className="bg-neutral-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-colors">
