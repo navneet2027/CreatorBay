@@ -694,14 +694,22 @@ export const PostCard = ({
   onDelete
 }: PostCardProps) => {
   const [isVideoFullscreen, setIsVideoFullscreen] = useState(false);
+  const [showInfo, setShowInfo] = useState(true);
 
   const openVideoFullscreen = () => {
     setIsVideoFullscreen(true);
+    setShowInfo(true);
     document.body.style.overflow = 'hidden';
+    
+    // Auto-hide info after 3 seconds
+    setTimeout(() => {
+      setShowInfo(false);
+    }, 3000);
   };
 
   const closeVideoFullscreen = () => {
     setIsVideoFullscreen(false);
+    setShowInfo(true);
     document.body.style.overflow = 'unset';
   };
 
@@ -857,16 +865,15 @@ export const PostCard = ({
             <X className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </button>
 
-          {/* Video Info - At top on mobile, bottom on desktop */}
-          <div className="fixed top-14 left-2 right-2 sm:top-4 sm:left-4 sm:right-20 md:top-auto md:bottom-4 md:left-8 md:right-8 bg-neutral-900/90 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-gray-700 max-w-md z-[101]">
-            <h3 className="text-white font-bold text-sm sm:text-base md:text-lg mb-1 line-clamp-1">{title}</h3>
-            {authorName && (
-              <p className="text-gray-400 text-xs sm:text-sm">by {authorName}</p>
-            )}
-            <p className="text-orange-400 text-xs mt-2 hidden md:block">
-              💡 Tip: Click or hover on video to show controls
-            </p>
-          </div>
+          {/* Video Info - Fades out after 3 seconds */}
+          {showInfo && (
+            <div className="fixed top-14 left-2 right-2 sm:top-16 sm:left-4 sm:right-20 bg-neutral-900/90 backdrop-blur-sm rounded-lg p-3 border border-gray-700 max-w-md z-[101] transition-opacity duration-500">
+              <h3 className="text-white font-bold text-sm sm:text-base mb-1 line-clamp-1">{title}</h3>
+              {authorName && (
+                <p className="text-gray-400 text-xs sm:text-sm">by {authorName}</p>
+              )}
+            </div>
+          )}
 
           {/* Video Container */}
           <div 
