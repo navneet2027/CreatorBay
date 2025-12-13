@@ -697,7 +697,8 @@ const Explore = () => {
   const [isloading, setIsloading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const role = localStorage.getItem("role");
-  let [len,setlen] =useState(0) ;
+  const [len,setlen] =useState(0) ;
+  const [subsc,setsubc] = useState(0);
   const filteredCreators = creators.filter((creator) =>
     creator.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -727,7 +728,7 @@ const Explore = () => {
         setlen(creatorgetall.data.length)
         creatorgetall.data.forEach(element => {
           if (element.username === creatorUserName){
-          
+            setsubc(element.subscriberCount);
             return
           }  ;
           
@@ -798,7 +799,7 @@ const Explore = () => {
           </div>
           <div className="bg-neutral-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-colors">
             <div className="text-3xl font-bold text-orange-500 mb-1">
-              {creators.reduce((acc, c) => acc + (c.subscribers || 0), 0)}
+              {creators.reduce((acc, c) => acc + (c.subscriberCount || 0), 0) + subsc}
             </div>
             <div className="text-gray-400 text-sm">Total Subscribers</div>
           </div>
