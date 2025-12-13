@@ -14,7 +14,7 @@ const Footer = () => {
               <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-orange-500/50">
                 {/* Replace this src with your actual profile picture URL */}
                 <img
-                  src="../public/dev.png"
+                  src="dev.png"
                   alt="Navneet"
                   className="w-full h-full object-cover"
                    style={{ filter: 'blur(5px)' }}
