@@ -838,7 +838,7 @@ const Explore = () => {
           )}
         </div>
       </div>
-
+  <Footer></Footer>
       {/* Loading Modal - Boosty style */}
       {isloading && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
@@ -851,7 +851,7 @@ const Explore = () => {
           </div>
         </div>
       )}
-      <Footer></Footer>
+    
     </div>
     
   );

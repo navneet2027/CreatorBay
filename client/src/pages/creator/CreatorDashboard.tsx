@@ -1412,7 +1412,9 @@ const CreatorDashboard = () => {
             )}
           </div>
         </div>
+        
       </div>
+     <Footer></Footer>
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
@@ -1455,8 +1457,8 @@ const CreatorDashboard = () => {
           </div>
         </div>
       )}
-      <Footer></Footer>
     </div>
+    
   );
 };
 
