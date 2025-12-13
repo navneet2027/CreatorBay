@@ -101,7 +101,7 @@ const Footer = () => {
                 </li>
                 <li>
                   <a 
-                    href="https://www.linkedin.com/in/navneet-barmase" 
+                    href="https://www.linkedin.com/in/navneet-barmase-895563293/" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-gray-400 hover:text-orange-400 text-sm transition-colors flex items-center gap-2"
