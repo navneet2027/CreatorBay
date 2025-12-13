@@ -17,6 +17,11 @@ const Footer = () => {
                   src="../public/dev.png"
                   alt="Navneet"
                   className="w-full h-full object-cover"
+                   style={{ filter: 'blur(5px)' }}
+ onLoad={(e) => {
+  const img = e.target as HTMLImageElement;
+  img.style.filter = "blur(0px)";
+}}
                 />
               </div>
             </div>
