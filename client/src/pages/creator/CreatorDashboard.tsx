@@ -783,6 +783,7 @@ const CreatorDashboard = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [creatornow, setCreatornow] = useState<Creator | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+   const [isloading, setIsloading] = useState(false);
   const [postToDelete, setPostToDelete] = useState<any>(null);
 
   const [newPost, setNewPost] = useState({
@@ -802,9 +803,11 @@ const CreatorDashboard = () => {
       navigate("/creator/login");
       return;
     }
-
+    setIsloading(true)
     const profdata = async () => {
-      const res = await axios.get(
+      try{
+   
+        const res = await axios.get(
         "https://creatorbay.onrender.com/api/auth/me",
         {
           headers: {
@@ -814,6 +817,10 @@ const CreatorDashboard = () => {
       );
       setCreatornow(res.data);
       console.log(creatornow);
+      }catch{
+
+      }
+      
     };
     profdata();
     console.log("fkjf", creatornow);
@@ -845,6 +852,9 @@ const CreatorDashboard = () => {
         });
       } catch (err) {
         console.error(err);
+      }finally{
+        
+             setIsloading(false)
       }
     };
 
@@ -1442,6 +1452,17 @@ const CreatorDashboard = () => {
                 Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {isloading && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-neutral-900 border border-gray-800 rounded-xl p-8 shadow-2xl w-80 text-center">
+            <div className="w-16 h-16 border-4 border-gray-800 border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
+            <h2 className="text-lg font-semibold text-white mb-2">Loading...</h2>
+            <p className="text-gray-400 text-sm">
+              Please wait, getting your dashboard ready😎.
+            </p>
           </div>
         </div>
       )}
