@@ -538,15 +538,434 @@
 
 
 //new 
+// import { useEffect, useState } from "react";
+// import { useParams, useNavigate } from "react-router-dom";
+// import { Navbar } from "@/components/Navbar";
+// import { PostCard } from "@/components/PostCardUser";
+// import { Button } from "@/components/ui/button";
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+// import { Badge } from "@/components/ui/badge";
+// import { SubscriptionDialog } from "@/components/SubscriptionDialog";
+// import { toast } from "sonner";
+// import { Lock, Users, Star, Crown, Heart, Calendar, ArrowRight } from "lucide-react";
+// import axios from "axios";
+// import AudioPlayer from "@/components/AudioPlayer";
+// import ProfileCard from "@/components/Postcardprofile";
+
+// const mockCreatorData = {
+//   name: "loading...",
+//   username: "loading...",
+//   bio: "loading...",
+//   subscriberCount: 0,
+//   profilePic: "loading..",
+//   allowed: false
+// };
+
+// const CreatorProfile = () => {
+//   const { username } = useParams();
+//   const navigate = useNavigate();
+//   const [creator, setCreator] = useState(mockCreatorData);
+//   const [posts, setPosts] = useState<any[]>([]);
+//   const [isSubscribed, setIsSubscribed] = useState(false);
+//   const [currentPlan, setCurrentPlan] = useState<'free' | 'monthly' | 'yearly' | null>(null);
+//   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+//   const userName = localStorage.getItem("Name") || "User";
+//   const [isloading, setIsloading] = useState(false);
+//    const role = localStorage.getItem("role");
+//   const [amountq, setAmountq] = useState({ monthly: 389, yearly: 4201, discount: 10 });
+
+//   useEffect(() => {
+//     const token = localStorage.getItem("userToken");
+//     if (!token) {
+//       navigate("/login");
+//       return;
+//     }
+//     localStorage.setItem("creatorUserName", username);
+//     setIsloading(true);
+
+//     const fetchData = async () => {
+//       try {
+//         const check = await axios.get(`https://creatorbay.onrender.com/api/payment/check-subscription/${username}`, {
+//           headers: { Authorization: `Bearer ${token}` }
+//         });
+//         setIsSubscribed(check.data.isSubscribed);
+//         console.log(check.data);
+//         if (check.data.isSubscribed) {
+//           setCurrentPlan(check.data.subscription.tim);
+//           console.log(check.data.subscription);
+//         }
+
+//         const creatorsget = await axios.get(`https://creatorbay.onrender.com/api/auth/creator/${username}`, {
+//           headers: { Authorization: `Bearer ${token}` }
+//         });
+//         setCreator(prev => {
+//           if (JSON.stringify(prev) === JSON.stringify(creatorsget.data[0])) return prev;
+//           return creatorsget.data[0];
+//         });
+
+//         axios.get(`https://creatorbay.onrender.com/api/auth/creator/subscribers/${username}`, {
+//           headers: { Authorization: `Bearer ${token}` }
+//         }).then(res => setAmountq({
+//           monthly: res.data.monthly,
+//           yearly: res.data.yearly,
+//           discount: res.data.discount
+//         }));
+
+//         const postget = await axios.get(`https://creatorbay.onrender.com/api/posts/creator/${username}`, {
+//           headers: { Authorization: `Bearer ${token}` }
+//         });
+
+//         setPosts(prev => {
+//           if (JSON.stringify(prev) === JSON.stringify(postget.data)) return prev;
+//           return postget.data;
+//         });
+//       } catch (error) {
+//         // Handle error
+//       } finally {
+//         setIsloading(false);
+//       }
+//     };
+
+//     console.log(username);
+//     fetchData();
+
+//     const interval = setInterval(fetchData, 5000);
+//     return () => clearInterval(interval);
+//   }, [username, navigate]);
+
+//   const handleSubscribe = async (plan: "free" | "monthly" | "yearly") => {
+//     const token = localStorage.getItem("userToken");
+//     setShowSubscriptionDialog(false);
+
+//     if (plan === "free") {
+//       const response = await axios.post(`https://creatorbay.onrender.com/api/payment/create-order/free`, {
+//         username: username,
+//         plan: 'free'
+//       }, {
+//         headers: { Authorization: `Bearer ${token}` }
+//       });
+//       const final = await axios.post('https://creatorbay.onrender.com/api/payment/free/verify', {
+//         order_id: response.data.order_id,
+//         creator_id: response.data.creator_id,
+//         username: username
+//       }, {
+//         headers: { Authorization: `Bearer ${token}` }
+//       });
+
+//       localStorage.setItem("subscriptionId", `${final.data.subscription._id}`);
+//       console.log(final.data);
+
+//       setIsSubscribed(true);
+//       setCurrentPlan('free');
+//       toast.success("Successfully subscribed to free plan!");
+//     } else {
+//       if (plan === "monthly") {
+//         const response = await axios.post(`https://creatorbay.onrender.com/api/payment/create-order`, {
+//           username: username,
+//           plan: 'paid',
+//           amount: amountq.monthly ?? 0,
+//         }, {
+//           headers: { Authorization: `Bearer ${token}` }
+//         });
+
+//         const final = await axios.post('https://creatorbay.onrender.com/api/payment/verify', {
+//           order_id: response.data.order_id,
+//           creator_id: response.data.creator_id,
+//           amount: amountq.monthly,
+//           username: username,
+//           tim: "m"
+//         }, {
+//           headers: { Authorization: `Bearer ${token}` }
+//         });
+//       }
+//       if (plan === "yearly") {
+//         const response = await axios.post(`https://creatorbay.onrender.com/api/payment/create-order`, {
+//           username: username,
+//           plan: 'paid',
+//           amount: amountq.yearly,
+//         }, {
+//           headers: { Authorization: `Bearer ${token}` }
+//         });
+//         const final = await axios.post('https://creatorbay.onrender.com/api/payment/verify', {
+//           order_id: response.data.order_id,
+//           creator_id: response.data.creator_id,
+//           amount: amountq.yearly,
+//           username: username,
+//           tim: "y"
+//         }, {
+//           headers: { Authorization: `Bearer ${token}` }
+//         });
+//       }
+//       setIsSubscribed(true);
+//       setCurrentPlan(plan);
+//     }
+
+//     setCreator(prev => ({
+//       ...prev,
+//       subscriberCount: prev.subscriberCount + 1,
+//     }));
+//   };
+
+//   const handleUnsubscribe = async () => {
+//     if (currentPlan === 'monthly' || currentPlan === 'yearly') {
+//       toast.error("Cannot unsubscribe from paid subscription. Please wait for it to expire or manage through Subscriptions page.");
+//       return;
+//     }
+
+//     const subsId = localStorage.getItem("subscriptionId");
+//     if (subsId === "") {
+//       return;
+//     }
+//     const token = localStorage.getItem("userToken");
+//     axios.delete(`https://creatorbay.onrender.com/api/payment/unsubscribe/${subsId}`, {
+//       headers: { Authorization: `Bearer ${token}` }
+//     });
+
+//     setIsSubscribed(false);
+//     setCurrentPlan(null);
+//     toast.success("Unsubscribed successfully!");
+
+//     setCreator(prev => ({
+//       ...prev,
+//       subscriberCount: prev.subscriberCount - 1,
+//     }));
+//   };
+
+//   const canAccessPaidContent = currentPlan === 'monthly' || currentPlan === 'yearly';
+
+//   const handleUpgrade = () => {
+//     setShowSubscriptionDialog(true);
+//   };
+
+//   const getPlanBadge = () => {
+//     if (currentPlan === 'free') {
+//       return (
+//         <div className="flex items-center gap-1 px-3 py-1 bg-gray-800 border border-gray-700 rounded-full text-xs font-medium text-gray-300">
+//           <Heart className="w-3 h-3" />
+//           Free Subscriber
+//         </div>
+//       );
+//     }
+//     if (currentPlan === 'monthly') {
+//       return (
+//         <div className="flex items-center gap-1 px-3 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-xs font-medium text-orange-400">
+//           <Star className="w-3 h-3" />
+//           Premium - Monthly
+//         </div>
+//       );
+//     }
+//     if (currentPlan === 'yearly') {
+//       return (
+//         <div className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border border-orange-500/30 rounded-full text-xs font-medium text-orange-400">
+//           <Crown className="w-3 h-3" />
+//           Premium - Yearly
+//         </div>
+//       );
+//     }
+//     return null;
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-black">
+//       <Navbar userType={role} userName={userName} />
+
+//       <div className="container mx-auto px-4 py-8 max-w-4xl">
+//         {/* Creator Profile Card */}
+//         <div className="bg-neutral-900 rounded-xl border border-gray-800 overflow-hidden mb-8">
+//           {/* Header Background */}
+//           <div className="h-40 bg-gradient-to-br from-orange-500/20 via-orange-600/10 to-transparent relative overflow-hidden">
+//             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(251,146,60,0.1),transparent)]"></div>
+//           </div>
+
+//           {/* Profile Content */}
+//           <div className="p-6 -mt-16 relative">
+//             <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-6">
+//               <div className="flex items-end gap-4">
+//                 <div className="flex-shrink-0">
+//                   {creator === mockCreatorData ? (
+//                     <div className="text-gray-400">Loading profile...</div>
+//                   ) : (
+//                     <ProfileCard user={creator} />
+//                   )}
+//                 </div>
+//                 <div>
+//                   <h1 className="text-3xl font-bold text-white mb-1">{creator?.name}</h1>
+//                   <p className="text-gray-500 mb-2">@{creator?.username}</p>
+//                   <div className="flex items-center gap-2 text-gray-400 text-sm">
+//                     <Users className="w-4 h-4" />
+//                     <span>{creator?.subscriberCount} subscribers</span>
+//                   </div>
+//                 </div>
+//               </div>
+
+//               <button
+//                 onClick={() => isSubscribed ? handleUnsubscribe() : setShowSubscriptionDialog(true)}
+//                 className={`px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 ${
+//                   isSubscribed
+//                     ? 'bg-neutral-800 hover:bg-neutral-700 text-white border border-gray-700'
+//                     : 'bg-orange-500 hover:bg-orange-600 text-white'
+//                 }`}
+//               >
+//                 {isSubscribed ? "Unsubscribe" : "Subscribe"}
+//               </button>
+//             </div>
+
+//             <p className="text-gray-300 mb-4 leading-relaxed">{creator?.bio}</p>
+
+//             {currentPlan && getPlanBadge()}
+//           </div>
+//         </div>
+
+//         {/* Posts Section */}
+//         <div className="space-y-4">
+//           <div className="flex items-center justify-between mb-6">
+//             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+//               <span className="w-1 h-8 bg-orange-500 rounded-full"></span>
+//               Posts
+//             </h2>
+//           </div>
+
+//           {posts.length === 0 ? (
+//             <div className="bg-neutral-900 rounded-xl border border-gray-800 p-12 text-center">
+//               <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+//                 <Calendar className="w-10 h-10 text-gray-600" />
+//               </div>
+//               <h3 className="text-xl font-semibold text-white mb-2">No Posts Yet</h3>
+//               <p className="text-gray-400">
+//                 This creator hasn't posted any content yet.
+//               </p>
+//             </div>
+//           ) : (
+//             posts.map((post) => {
+//               const isLocked = post.access_type === "paid" && !canAccessPaidContent;
+//               return (
+//                 <div
+//                   key={post.id}
+//                   className={`bg-neutral-900 rounded-xl border border-gray-800 overflow-hidden ${
+//                     isLocked ? 'opacity-75' : 'hover:border-orange-500/30'
+//                   } transition-all`}
+//                 >
+//                   <div className="p-6">
+//                     <div className="flex items-start justify-between mb-4">
+//                       <div className="flex-1">
+//                         <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-2">
+//                           {post.title}
+//                           {isLocked && <Lock className="w-4 h-4 text-gray-500" />}
+//                         </h3>
+//                         <p className="text-gray-500 text-sm">
+//                           {new Date(post.createdAt).toLocaleDateString()}
+//                         </p>
+//                       </div>
+//                       <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+//                         post.access_type === "free"
+//                           ? 'bg-gray-800 border border-gray-700 text-gray-300'
+//                           : 'bg-orange-500/20 border border-orange-500/30 text-orange-400'
+//                       }`}>
+//                         {post.access_type === "free" ? "Free" : "Premium"}
+//                       </div>
+//                     </div>
+
+//                     {isLocked ? (
+//                       <div className="text-center py-12 px-4 bg-black/30 rounded-lg border border-gray-800">
+//                         <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+//                           <Lock className="w-8 h-8 text-gray-600" />
+//                         </div>
+//                         <p className="text-gray-400 mb-6">
+//                           This content is available only for premium subscribers.
+//                         </p>
+//                         <button
+//                           onClick={handleUpgrade}
+//                           className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-all hover:scale-105 inline-flex items-center gap-2"
+//                         >
+//                           Upgrade to Premium
+//                           <ArrowRight className="w-4 h-4" />
+//                         </button>
+//                       </div>
+//                     ) : (
+//                       <>
+//                         {post.mediaUrl && (
+//                           <div className="rounded-lg overflow-hidden">
+//                             {post.contentType === "image" && (
+//                               <img src={post.mediaUrl} className="rounded-lg w-full" alt={post.title} loading="lazy"
+//   style={{ filter: 'blur(5px)' }}
+//  onLoad={(e) => {
+//   const img = e.target as HTMLImageElement;
+//   img.style.filter = "blur(0px)";
+// }}/>
+//                             )}
+
+//                             {post.contentType === "video" && (
+//                               <video
+//                                 src={post.mediaUrl}
+//                                 controls
+//                                  style={{ filter: "blur(10px)", transition: "0.3s ease" }}
+//   onLoadedData={(e) => {
+//     const vid = e.target as HTMLVideoElement;
+//     vid.style.filter = "blur(0px)";
+//   }}
+//                                 poster={post.thumbnailUrl}
+//                                 className="w-full rounded-lg"
+//                               ></video>
+//                             )}
+
+//                             {post.contentType === "audio" && (
+//                               <AudioPlayer
+//                                 audio={post.mediaUrl}
+//                                 thumbnail={post.thumbnailUrl}
+                                
+//                               />
+//                             )}
+//                           </div>
+//                         )}
+//                         {post.content && (
+//                           <p className="text-gray-300 mt-4 leading-relaxed">{post.content}</p>
+//                         )}
+//                       </>
+//                     )}
+//                   </div>
+//                 </div>
+//               );
+//             })
+//           )}
+//         </div>
+//       </div>
+
+//       {/* Loading Modal */}
+//       {isloading && (
+//         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+//           <div className="bg-neutral-900 border border-gray-800 rounded-xl p-8 shadow-2xl w-80 text-center">
+//             <div className="w-16 h-16 border-4 border-gray-800 border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
+//             <h2 className="text-lg font-semibold text-white mb-2">Loading...</h2>
+//             <p className="text-gray-400 text-sm">
+//               Please wait, loading creator data.
+//             </p>
+//           </div>
+//         </div>
+//       )}
+
+//       <SubscriptionDialog
+//         open={showSubscriptionDialog}
+//         onOpenChange={setShowSubscriptionDialog}
+//         creatorName={creator.name}
+//         onSubscribe={handleSubscribe}
+//         prices={amountq}
+//       />
+//     </div>
+//   );
+// };
+
+// export default CreatorProfile;
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
-import { PostCard } from "@/components/PostCardUser";
+import { PostCard } from "@/components/PostCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import { toast } from "sonner";
+import Footer from "@/components/footer";
 import { Lock, Users, Star, Crown, Heart, Calendar, ArrowRight } from "lucide-react";
 import axios from "axios";
 import AudioPlayer from "@/components/AudioPlayer";
@@ -571,7 +990,7 @@ const CreatorProfile = () => {
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const userName = localStorage.getItem("Name") || "User";
   const [isloading, setIsloading] = useState(false);
-   const role = localStorage.getItem("role");
+  const role = localStorage.getItem("role");
   const [amountq, setAmountq] = useState({ monthly: 389, yearly: 4201, discount: 10 });
 
   useEffect(() => {
@@ -838,34 +1257,30 @@ const CreatorProfile = () => {
           ) : (
             posts.map((post) => {
               const isLocked = post.access_type === "paid" && !canAccessPaidContent;
-              return (
-                <div
-                  key={post.id}
-                  className={`bg-neutral-900 rounded-xl border border-gray-800 overflow-hidden ${
-                    isLocked ? 'opacity-75' : 'hover:border-orange-500/30'
-                  } transition-all`}
-                >
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-2">
-                          {post.title}
-                          {isLocked && <Lock className="w-4 h-4 text-gray-500" />}
-                        </h3>
-                        <p className="text-gray-500 text-sm">
-                          {new Date(post.createdAt).toLocaleDateString()}
-                        </p>
+              
+              if (isLocked) {
+                // Show locked post UI
+                return (
+                  <div
+                    key={post.id}
+                    className="bg-neutral-900 rounded-xl border border-gray-800 overflow-hidden opacity-75 transition-all"
+                  >
+                    <div className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-2">
+                            {post.title}
+                            <Lock className="w-4 h-4 text-gray-500" />
+                          </h3>
+                          <p className="text-gray-500 text-sm">
+                            {new Date(post.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="px-3 py-1 rounded-full text-xs font-medium bg-orange-500/20 border border-orange-500/30 text-orange-400">
+                          Premium
+                        </div>
                       </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        post.access_type === "free"
-                          ? 'bg-gray-800 border border-gray-700 text-gray-300'
-                          : 'bg-orange-500/20 border border-orange-500/30 text-orange-400'
-                      }`}>
-                        {post.access_type === "free" ? "Free" : "Premium"}
-                      </div>
-                    </div>
 
-                    {isLocked ? (
                       <div className="text-center py-12 px-4 bg-black/30 rounded-lg border border-gray-800">
                         <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
                           <Lock className="w-8 h-8 text-gray-600" />
@@ -881,54 +1296,32 @@ const CreatorProfile = () => {
                           <ArrowRight className="w-4 h-4" />
                         </button>
                       </div>
-                    ) : (
-                      <>
-                        {post.mediaUrl && (
-                          <div className="rounded-lg overflow-hidden">
-                            {post.contentType === "image" && (
-                              <img src={post.mediaUrl} className="rounded-lg w-full" alt={post.title} loading="lazy"
-  style={{ filter: 'blur(5px)' }}
- onLoad={(e) => {
-  const img = e.target as HTMLImageElement;
-  img.style.filter = "blur(0px)";
-}}/>
-                            )}
-
-                            {post.contentType === "video" && (
-                              <video
-                                src={post.mediaUrl}
-                                controls
-                                 style={{ filter: "blur(10px)", transition: "0.3s ease" }}
-  onLoadedData={(e) => {
-    const vid = e.target as HTMLVideoElement;
-    vid.style.filter = "blur(0px)";
-  }}
-                                poster={post.thumbnailUrl}
-                                className="w-full rounded-lg"
-                              ></video>
-                            )}
-
-                            {post.contentType === "audio" && (
-                              <AudioPlayer
-                                audio={post.mediaUrl}
-                                thumbnail={post.thumbnailUrl}
-                                
-                              />
-                            )}
-                          </div>
-                        )}
-                        {post.content && (
-                          <p className="text-gray-300 mt-4 leading-relaxed">{post.content}</p>
-                        )}
-                      </>
-                    )}
+                    </div>
                   </div>
-                </div>
+                );
+              }
+              
+              // Show unlocked post using PostCard component
+              return (
+                <PostCard
+                  key={post._id || post.id}
+                  title={post.title}
+                  content={post.content}
+                  createdAt={post.createdAt}
+                  access_type={post.access_type}
+                  contentType={post.contentType}
+                  mediaUrl={post.mediaUrl}
+                  thumbnailUrl={post.thumbnailUrl}
+                  authorName={creator.name}
+                />
               );
             })
           )}
         </div>
       </div>
+
+      {/* Footer - outside container for full width */}
+      <Footer />
 
       {/* Loading Modal */}
       {isloading && (
