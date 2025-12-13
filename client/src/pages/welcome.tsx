@@ -1,5 +1,5 @@
 import { Users, Crown, Sparkles, Heart, TrendingUp, Star, ArrowRight, Zap } from "lucide-react";
-
+import Footer from "@/components/footer";
 const WelcomePage = () => {
   const handleUserLogin = () => {
     // Navigate to user login
@@ -228,6 +228,7 @@ const WelcomePage = () => {
           animation-fill-mode: forwards;
         }
       `}</style>
+      <Footer></Footer>
     </div>
   );
 };

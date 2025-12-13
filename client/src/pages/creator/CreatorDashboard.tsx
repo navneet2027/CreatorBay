@@ -757,6 +757,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import ProfileCard from "@/components/Postcardprofile";
 import { toast } from "sonner";
+import Footer  from "@/components/footer";
 import { MediaPreview } from "@/components/MediaPreview";
 import axios from "axios";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -1454,6 +1455,7 @@ const CreatorDashboard = () => {
           </div>
         </div>
       )}
+      <Footer></Footer>
     </div>
   );
 };

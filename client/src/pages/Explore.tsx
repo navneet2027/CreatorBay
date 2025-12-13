@@ -680,6 +680,8 @@
 
 
 import { useEffect, useState } from "react";
+import Footer from "@/components/footer";
+
 import { Navbar } from "@/components/Navbar";
 import { CreatorCard } from "@/components/CreatorCard";
 import { useNavigate } from "react-router-dom";
@@ -849,7 +851,9 @@ const Explore = () => {
           </div>
         </div>
       )}
+      <Footer></Footer>
     </div>
+    
   );
 };
 
