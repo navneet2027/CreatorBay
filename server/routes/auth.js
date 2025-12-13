@@ -25,7 +25,13 @@ router.post('/signup', async (req, res) => {
     if (!name || !username || !email || !password || !role) {
       return res.status(400).json({ message: 'Please provide all fields' });
     }
+const regex = /^(?=.*[A-Za-z])[A-Za-z0-9._]+$/;
 
+if (!regex.test(username)) {
+  return res.status(400).json({
+    error: "Invalid username format",
+  });
+}
     // Check if user exists
     const userExists = await User.findOne({ email });
     if (userExists) {

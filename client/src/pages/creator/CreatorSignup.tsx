@@ -269,15 +269,20 @@ const CreatorSignup = () => {
                 <Label htmlFor="username" className="text-white text-sm font-medium mb-2 block">
                   Username
                 </Label>
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="johndoe"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  required
-                  className="bg-black border-gray-800 text-white placeholder-gray-500 focus:border-orange-500"
-                />
+               <Input
+  id="username"
+  type="text"
+  placeholder="john_123"
+  value={formData.username}
+  onChange={(e) => {
+    const value = e.target.value.replace(/[^A-Za-z0-9._]/g, "");
+    setFormData({ ...formData, username: value });
+  }}
+  pattern="^(?=.*[A-Za-z])[A-Za-z0-9._]+$"
+  title="Must contain at least one letter. Only letters, numbers, . and _ allowed."
+  required
+  className="bg-black border-gray-800 text-white placeholder-gray-500 focus:border-orange-500"
+/>
               </div>
 
               <div>
