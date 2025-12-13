@@ -662,10 +662,11 @@
 // };
 
 
-import { useState } from "react";
+
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import AudioPlayer from "./AudioPlayer";
-import { Music, Edit, Trash2, Crown, Heart, X, Play } from "lucide-react";
+import { Music, Edit, Trash2, Crown, Heart, X, Maximize2, Play, Pause } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface PostCardProps {
@@ -694,135 +695,195 @@ export const PostCard = ({
   onDelete
 }: PostCardProps) => {
   const [isVideoFullscreen, setIsVideoFullscreen] = useState(false);
-  const [showInfo, setShowInfo] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [showControls, setShowControls] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const openVideoFullscreen = () => {
     setIsVideoFullscreen(true);
-    setShowInfo(true);
     document.body.style.overflow = 'hidden';
-    
-    // Auto-hide info after 3 seconds
-    setTimeout(() => {
-      setShowInfo(false);
-    }, 3000);
   };
 
   const closeVideoFullscreen = () => {
     setIsVideoFullscreen(false);
-    setShowInfo(true);
+    setIsPlaying(false);
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
     document.body.style.overflow = 'unset';
   };
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = parseFloat(e.target.value);
+    setCurrentTime(time);
+    if (videoRef.current) {
+      videoRef.current.currentTime = time;
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleMouseMove = () => {
+    setShowControls(true);
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    controlsTimeoutRef.current = setTimeout(() => {
+      if (isPlaying) {
+        setShowControls(false);
+      }
+    }, 3000);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isVideoFullscreen) {
+        closeVideoFullscreen();
+      }
+      if (e.key === ' ' && isVideoFullscreen) {
+        e.preventDefault();
+        togglePlay();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isVideoFullscreen, isPlaying]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleTimeUpdate = () => setCurrentTime(video.currentTime);
+    const handleLoadedMetadata = () => setDuration(video.duration);
+    const handleEnded = () => setIsPlaying(false);
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('ended', handleEnded);
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('ended', handleEnded);
+    };
+  }, [isVideoFullscreen]);
 
   return (
     <>
       <div className="bg-neutral-900 rounded-xl border border-gray-800 overflow-hidden hover:border-gray-700 transition-all">
         {/* Header */}
-        <div className="p-3 sm:p-4 md:p-6 border-b border-gray-800">
-          <div className="flex flex-col gap-3">
-            {/* Title and Badge Row */}
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-white break-words line-clamp-2">{title}</h3>
-                  {access_type === 'free' ? (
-                    <div className="flex items-center gap-1 px-2 py-0.5 sm:py-1 bg-gray-800 border border-gray-700 rounded-full text-xs font-medium text-gray-300 flex-shrink-0">
-                      <Heart className="w-3 h-3" />
-                      <span className="hidden xs:inline">Free</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1 px-2 py-0.5 sm:py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-xs font-medium text-orange-400 flex-shrink-0">
-                      <Crown className="w-3 h-3" />
-                      <span className="hidden xs:inline">Premium</span>
-                    </div>
-                  )}
-                </div>
-                {authorName && (
-                  <p className="text-xs sm:text-sm text-gray-500">by {authorName}</p>
+        <div className="p-4 sm:p-6 border-b border-gray-800">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start sm:items-center gap-2 sm:gap-3 mb-2 flex-wrap">
+                <h3 className="text-lg sm:text-xl font-bold text-white break-words">{title}</h3>
+                {access_type === 'free' ? (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-gray-800 border border-gray-700 rounded-full text-xs font-medium text-gray-300 flex-shrink-0">
+                    <Heart className="w-3 h-3" />
+                    Free
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-xs font-medium text-orange-400 flex-shrink-0">
+                    <Crown className="w-3 h-3" />
+                    Premium
+                  </div>
                 )}
               </div>
+              {authorName && (
+                <p className="text-sm text-gray-500">by {authorName}</p>
+              )}
             </div>
-
-            {/* Date and Actions Row */}
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-gray-500">
+            
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-xs text-gray-500 hidden sm:block">
                 {new Date(createdAt).toLocaleDateString()}
               </span>
-              
-              {(onEdit || onDelete) && (
-                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                  {onEdit && (
-                    <button
-                      onClick={onEdit}
-                      className="p-1.5 sm:p-2 bg-neutral-800 hover:bg-neutral-700 text-gray-400 hover:text-white rounded-lg transition-all border border-gray-700"
-                      title="Edit post"
-                    >
-                      <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    </button>
-                  )}
-                  {onDelete && (
-                    <button
-                      onClick={onDelete}
-                      className="p-1.5 sm:p-2 bg-neutral-800 hover:bg-red-900/50 text-gray-400 hover:text-red-400 rounded-lg transition-all border border-gray-700 hover:border-red-500/50"
-                      title="Delete post"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    </button>
-                  )}
-                </div>
+              {onEdit && (
+                <button
+                  onClick={onEdit}
+                  className="p-2 bg-neutral-800 hover:bg-neutral-700 text-gray-400 hover:text-white rounded-lg transition-all border border-gray-700"
+                  title="Edit post"
+                >
+                  <Edit className="w-4 h-4" />
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  onClick={onDelete}
+                  className="p-2 bg-neutral-800 hover:bg-red-900/50 text-gray-400 hover:text-red-400 rounded-lg transition-all border border-gray-700 hover:border-red-500/50"
+                  title="Delete post"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               )}
             </div>
           </div>
+          <span className="text-xs text-gray-500 block sm:hidden mt-2">
+            {new Date(createdAt).toLocaleDateString()}
+          </span>
         </div>
 
         {/* Content */}
-        <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
+        <div className="p-4 sm:p-6 space-y-4">
           {/* Media Display */}
           {contentType === "image" && mediaUrl && (
             <div className="rounded-lg overflow-hidden bg-black flex items-center justify-center">
               <img
                 src={mediaUrl}
                 alt={title}
-                className="w-full h-auto object-contain max-h-[400px] sm:max-h-[500px] md:max-h-[600px]"
-                loading="lazy"
+                className="w-full h-auto object-contain max-h-[500px] sm:max-h-[600px]"
               />
             </div>
           )}
 
           {contentType === "video" && mediaUrl && (
-            <div className="relative rounded-lg overflow-hidden bg-black group">
-              {/* Video Thumbnail */}
-              <div className="relative w-full">
-                {thumbnailUrl ? (
-                  <img
-                    src={thumbnailUrl}
-                    alt="Video thumbnail"
-                    className="w-full h-auto max-h-[400px] sm:max-h-[500px] md:max-h-[600px] object-contain mx-auto block"
-                  />
-                ) : (
-                  <video
-                    src={mediaUrl}
-                    className="w-full h-auto max-h-[400px] sm:max-h-[500px] md:max-h-[600px] object-contain mx-auto block"
-                    preload="metadata"
-                  />
-                )}
-                
-                {/* Play Button Overlay */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <button
-                    onClick={openVideoFullscreen}
-                    className="group/play"
-                    aria-label="Play video"
-                  >
-                    <div className="relative">
-                      {/* Pulsing ring */}
-                      <div className="absolute inset-0 bg-orange-500 rounded-full animate-ping opacity-75"></div>
-                      
-                      {/* Play button */}
-                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-orange-500 hover:bg-orange-600 rounded-full flex items-center justify-center transition-all group-hover/play:scale-110 shadow-lg shadow-orange-500/50">
-                        <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white fill-white ml-1" />
-                      </div>
-                    </div>
-                  </button>
+            <div className="relative rounded-lg overflow-hidden bg-black group cursor-pointer" onClick={openVideoFullscreen}>
+              {/* Video Container with Aspect Ratio Constraint */}
+              <div 
+                className="relative w-full"
+                style={{
+                  maxHeight: '70vh',
+                }}
+              >
+                <video
+                  src={mediaUrl}
+                  poster={thumbnailUrl}
+                  className="w-full h-full max-h-[70vh] object-contain mx-auto block"
+                  preload="metadata"
+                  style={{
+                    maxWidth: '100%',
+                    display: 'block',
+                  }}
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+              
+              {/* Play Button Overlay - Always Visible */}
+              <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-all flex items-center justify-center">
+                <div className="bg-orange-500 group-hover:bg-orange-600 rounded-full p-4 sm:p-6 shadow-2xl transform transition-all group-hover:scale-110">
+                  <Play className="w-8 h-8 sm:w-12 sm:h-12 text-white fill-white" />
                 </div>
               </div>
               
@@ -842,7 +903,7 @@ export const PostCard = ({
 
           {/* Description */}
           {content && (
-            <p className="text-xs sm:text-sm md:text-base text-gray-300 whitespace-pre-wrap leading-relaxed break-words">{content}</p>
+            <p className="text-sm sm:text-base text-gray-300 whitespace-pre-wrap leading-relaxed break-words">{content}</p>
           )}
         </div>
       </div>
@@ -850,53 +911,359 @@ export const PostCard = ({
       {/* Video Fullscreen Modal */}
       {isVideoFullscreen && contentType === "video" && mediaUrl && (
         <div 
-          className="fixed inset-0 bg-black/95 backdrop-blur-md z-[100] flex items-center justify-center"
-          onClick={closeVideoFullscreen}
+          className="fixed inset-0 bg-black z-[100] flex flex-col"
+          style={{ margin: 0, padding: 0 }}
+          onMouseMove={handleMouseMove}
+          onClick={() => {
+            if (isPlaying) {
+              setShowControls(!showControls);
+            }
+          }}
         >
-          {/* Close Button */}
-          <button
+          {/* Top Bar with Close Button */}
+          <div 
+            className={`absolute top-0 left-0 right-0 z-[102] bg-gradient-to-b from-black/90 to-transparent p-4 transition-opacity duration-300 ${
+              showControls ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <div className="flex items-center justify-between max-w-7xl mx-auto">
+              <div className="flex-1 min-w-0 pr-4">
+                <h3 className="text-white font-bold text-sm sm:text-base md:text-lg line-clamp-1">{title}</h3>
+                {authorName && (
+                  <p className="text-gray-400 text-xs sm:text-sm line-clamp-1">by {authorName}</p>
+                )}
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  closeVideoFullscreen();
+                }}
+                className="p-2 sm:p-3 bg-orange-500 hover:bg-orange-600 rounded-full transition-all shadow-lg flex-shrink-0"
+                title="Close (ESC)"
+              >
+                <X className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </button>
+            </div>
+          </div>
+
+          {/* Video Container - Centered and Responsive */}
+          <div 
+            className="flex-1 flex items-center justify-center"
             onClick={(e) => {
               e.stopPropagation();
-              closeVideoFullscreen();
+              togglePlay();
             }}
-            className="fixed top-2 right-2 sm:top-4 sm:right-4 p-2 sm:p-3 bg-orange-500 hover:bg-orange-600 rounded-full transition-all z-[101] shadow-lg"
-            title="Close (ESC)"
-          >
-            <X className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          </button>
-
-          {/* Video Info - Fades out after 3 seconds */}
-          {showInfo && (
-            <div className="fixed top-14 left-2 right-2 sm:top-16 sm:left-4 sm:right-20 bg-neutral-900/90 backdrop-blur-sm rounded-lg p-3 border border-gray-700 max-w-md z-[101] transition-opacity duration-500">
-              <h3 className="text-white font-bold text-sm sm:text-base mb-1 line-clamp-1">{title}</h3>
-              {authorName && (
-                <p className="text-gray-400 text-xs sm:text-sm">by {authorName}</p>
-              )}
-            </div>
-          )}
-
-          {/* Video Container */}
-          <div 
-            className="w-full h-full flex items-center justify-center p-2 sm:p-4 md:p-8"
-            onClick={(e) => e.stopPropagation()}
           >
             <video
+              ref={videoRef}
               src={mediaUrl}
-              controls
-              controlsList="nodownload"
-              autoPlay
               poster={thumbnailUrl}
-              playsInline
-              className="max-w-full max-h-full w-auto h-auto rounded-lg"
+              className="max-w-full max-h-full w-auto h-auto"
               style={{
                 objectFit: 'contain',
               }}
+              onClick={(e) => e.stopPropagation()}
             >
               Your browser does not support the video tag.
             </video>
+          </div>
+
+          {/* Custom Video Controls */}
+          <div 
+            className={`absolute bottom-0 left-0 right-0 z-[102] bg-gradient-to-t from-black/90 via-black/70 to-transparent pt-12 pb-4 px-4 sm:px-6 transition-opacity duration-300 ${
+              showControls ? 'opacity-100' : 'opacity-0'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="max-w-7xl mx-auto space-y-3">
+              {/* Progress Bar */}
+              <div className="relative group/seek">
+                <input
+                  type="range"
+                  min="0"
+                  max={duration || 0}
+                  value={currentTime}
+                  onChange={handleSeek}
+                  className="w-full h-1 sm:h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
+                  style={{
+                    background: `linear-gradient(to right, #f97316 0%, #f97316 ${(currentTime / duration) * 100}%, #374151 ${(currentTime / duration) * 100}%, #374151 100%)`,
+                  }}
+                />
+              </div>
+
+              {/* Controls Row */}
+              <div className="flex items-center justify-between gap-4">
+                {/* Play/Pause Button */}
+                <button
+                  onClick={togglePlay}
+                  className="p-2 sm:p-3 bg-orange-500 hover:bg-orange-600 rounded-full transition-all shadow-lg flex-shrink-0"
+                  title={isPlaying ? "Pause (Space)" : "Play (Space)"}
+                >
+                  {isPlaying ? (
+                    <Pause className="w-5 h-5 sm:w-6 sm:h-6 text-white fill-white" />
+                  ) : (
+                    <Play className="w-5 h-5 sm:w-6 sm:h-6 text-white fill-white" />
+                  )}
+                </button>
+
+                {/* Time Display */}
+                <div className="flex items-center gap-2 text-white text-xs sm:text-sm font-mono">
+                  <span>{formatTime(currentTime)}</span>
+                  <span className="text-gray-500">/</span>
+                  <span className="text-gray-400">{formatTime(duration)}</span>
+                </div>
+
+                {/* Spacer */}
+                <div className="flex-1"></div>
+
+                {/* Fullscreen/Close hint */}
+                <p className="hidden sm:block text-gray-400 text-xs">
+                  Press ESC to close
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
     </>
   );
 };
+
+// import { useState } from "react";
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+// import AudioPlayer from "./AudioPlayer";
+// import { Music, Edit, Trash2, Crown, Heart, X, Play } from "lucide-react";
+// import { Badge } from "@/components/ui/badge";
+
+// interface PostCardProps {
+//   title: string;
+//   content: string;
+//   createdAt: string;
+//   authorName?: string;
+//   contentType?: string;
+//   mediaUrl?: string;
+//   thumbnailUrl?: string;
+//   access_type?: string;
+//   onEdit?: () => void;
+//   onDelete?: () => void;
+// }
+
+// export const PostCard = ({ 
+//   title, 
+//   content, 
+//   createdAt, 
+//   authorName,
+//   contentType = "text",
+//   mediaUrl,
+//   thumbnailUrl,
+//   access_type,
+//   onEdit,
+//   onDelete
+// }: PostCardProps) => {
+//   const [isVideoFullscreen, setIsVideoFullscreen] = useState(false);
+//   const [showInfo, setShowInfo] = useState(true);
+
+//   const openVideoFullscreen = () => {
+//     setIsVideoFullscreen(true);
+//     setShowInfo(true);
+//     document.body.style.overflow = 'hidden';
+    
+//     // Auto-hide info after 3 seconds
+//     setTimeout(() => {
+//       setShowInfo(false);
+//     }, 3000);
+//   };
+
+//   const closeVideoFullscreen = () => {
+//     setIsVideoFullscreen(false);
+//     setShowInfo(true);
+//     document.body.style.overflow = 'unset';
+//   };
+
+//   return (
+//     <>
+//       <div className="bg-neutral-900 rounded-xl border border-gray-800 overflow-hidden hover:border-gray-700 transition-all">
+//         {/* Header */}
+//         <div className="p-3 sm:p-4 md:p-6 border-b border-gray-800">
+//           <div className="flex flex-col gap-3">
+//             {/* Title and Badge Row */}
+//             <div className="flex items-start justify-between gap-2">
+//               <div className="flex-1 min-w-0">
+//                 <div className="flex flex-wrap items-center gap-2 mb-1">
+//                   <h3 className="text-base sm:text-lg md:text-xl font-bold text-white break-words line-clamp-2">{title}</h3>
+//                   {access_type === 'free' ? (
+//                     <div className="flex items-center gap-1 px-2 py-0.5 sm:py-1 bg-gray-800 border border-gray-700 rounded-full text-xs font-medium text-gray-300 flex-shrink-0">
+//                       <Heart className="w-3 h-3" />
+//                       <span className="hidden xs:inline">Free</span>
+//                     </div>
+//                   ) : (
+//                     <div className="flex items-center gap-1 px-2 py-0.5 sm:py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-xs font-medium text-orange-400 flex-shrink-0">
+//                       <Crown className="w-3 h-3" />
+//                       <span className="hidden xs:inline">Premium</span>
+//                     </div>
+//                   )}
+//                 </div>
+//                 {authorName && (
+//                   <p className="text-xs sm:text-sm text-gray-500">by {authorName}</p>
+//                 )}
+//               </div>
+//             </div>
+
+//             {/* Date and Actions Row */}
+//             <div className="flex items-center justify-between gap-2">
+//               <span className="text-xs text-gray-500">
+//                 {new Date(createdAt).toLocaleDateString()}
+//               </span>
+              
+//               {(onEdit || onDelete) && (
+//                 <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+//                   {onEdit && (
+//                     <button
+//                       onClick={onEdit}
+//                       className="p-1.5 sm:p-2 bg-neutral-800 hover:bg-neutral-700 text-gray-400 hover:text-white rounded-lg transition-all border border-gray-700"
+//                       title="Edit post"
+//                     >
+//                       <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+//                     </button>
+//                   )}
+//                   {onDelete && (
+//                     <button
+//                       onClick={onDelete}
+//                       className="p-1.5 sm:p-2 bg-neutral-800 hover:bg-red-900/50 text-gray-400 hover:text-red-400 rounded-lg transition-all border border-gray-700 hover:border-red-500/50"
+//                       title="Delete post"
+//                     >
+//                       <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+//                     </button>
+//                   )}
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Content */}
+//         <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
+//           {/* Media Display */}
+//           {contentType === "image" && mediaUrl && (
+//             <div className="rounded-lg overflow-hidden bg-black flex items-center justify-center">
+//               <img
+//                 src={mediaUrl}
+//                 alt={title}
+//                 className="w-full h-auto object-contain max-h-[400px] sm:max-h-[500px] md:max-h-[600px]"
+//                 loading="lazy"
+//               />
+//             </div>
+//           )}
+
+//           {contentType === "video" && mediaUrl && (
+//             <div className="relative rounded-lg overflow-hidden bg-black group">
+//               {/* Video Thumbnail */}
+//               <div className="relative w-full">
+//                 {thumbnailUrl ? (
+//                   <img
+//                     src={thumbnailUrl}
+//                     alt="Video thumbnail"
+//                     className="w-full h-auto max-h-[400px] sm:max-h-[500px] md:max-h-[600px] object-contain mx-auto block"
+//                   />
+//                 ) : (
+//                   <video
+//                     src={mediaUrl}
+//                     className="w-full h-auto max-h-[400px] sm:max-h-[500px] md:max-h-[600px] object-contain mx-auto block"
+//                     preload="metadata"
+//                   />
+//                 )}
+                
+//                 {/* Play Button Overlay */}
+//                 <div className="absolute inset-0 flex items-center justify-center">
+//                   <button
+//                     onClick={openVideoFullscreen}
+//                     className="group/play"
+//                     aria-label="Play video"
+//                   >
+//                     <div className="relative">
+//                       {/* Pulsing ring */}
+//                       <div className="absolute inset-0 bg-orange-500 rounded-full animate-ping opacity-75"></div>
+                      
+//                       {/* Play button */}
+//                       <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-orange-500 hover:bg-orange-600 rounded-full flex items-center justify-center transition-all group-hover/play:scale-110 shadow-lg shadow-orange-500/50">
+//                         <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white fill-white ml-1" />
+//                       </div>
+//                     </div>
+//                   </button>
+//                 </div>
+//               </div>
+              
+//               <p className="text-xs text-gray-400 text-center mt-2 px-2">Click to play video</p>
+//             </div>
+//           )}
+
+//           {contentType === "audio" && mediaUrl && (
+//             <div className="w-full">
+//               <AudioPlayer 
+//                 audio={mediaUrl} 
+//                 thumbnail={thumbnailUrl}
+//                 title={title}
+//               />
+//             </div>
+//           )}
+
+//           {/* Description */}
+//           {content && (
+//             <p className="text-xs sm:text-sm md:text-base text-gray-300 whitespace-pre-wrap leading-relaxed break-words">{content}</p>
+//           )}
+//         </div>
+//       </div>
+
+//       {/* Video Fullscreen Modal */}
+//       {isVideoFullscreen && contentType === "video" && mediaUrl && (
+//         <div 
+//           className="fixed inset-0 bg-black/95 backdrop-blur-md z-[100] flex items-center justify-center"
+//           onClick={closeVideoFullscreen}
+//         >
+//           {/* Close Button */}
+//           <button
+//             onClick={(e) => {
+//               e.stopPropagation();
+//               closeVideoFullscreen();
+//             }}
+//             className="fixed top-2 right-2 sm:top-4 sm:right-4 p-2 sm:p-3 bg-orange-500 hover:bg-orange-600 rounded-full transition-all z-[101] shadow-lg"
+//             title="Close (ESC)"
+//           >
+//             <X className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+//           </button>
+
+//           {/* Video Info - Fades out after 3 seconds */}
+//           {showInfo && (
+//             <div className="fixed top-14 left-2 right-2 sm:top-16 sm:left-4 sm:right-20 bg-neutral-900/90 backdrop-blur-sm rounded-lg p-3 border border-gray-700 max-w-md z-[101] transition-opacity duration-500">
+//               <h3 className="text-white font-bold text-sm sm:text-base mb-1 line-clamp-1">{title}</h3>
+//               {authorName && (
+//                 <p className="text-gray-400 text-xs sm:text-sm">by {authorName}</p>
+//               )}
+//             </div>
+//           )}
+
+//           {/* Video Container */}
+//           <div 
+//             className="w-full h-full flex items-center justify-center p-2 sm:p-4 md:p-8"
+//             onClick={(e) => e.stopPropagation()}
+//           >
+//             <video
+//               src={mediaUrl}
+//               controls
+//               controlsList="nodownload"
+//               autoPlay
+//               poster={thumbnailUrl}
+//               playsInline
+//               className="max-w-full max-h-full w-auto h-auto rounded-lg"
+//               style={{
+//                 objectFit: 'contain',
+//               }}
+//             >
+//               Your browser does not support the video tag.
+//             </video>
+//           </div>
+//         </div>
+//       )}
+//     </>
+//   );
+// };
