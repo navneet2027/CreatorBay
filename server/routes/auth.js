@@ -29,7 +29,7 @@ const regex = /^(?=.*[A-Za-z])[A-Za-z0-9._]+$/;
 
 if (!regex.test(username)) {
   return res.status(400).json({
-    error: "Invalid username format",
+    message: "Invalid username format",
   });
 }
     // Check if user exists
